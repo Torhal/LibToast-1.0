@@ -128,7 +128,7 @@ local SIBLING_OFFSET_Y = {
 -- Settings functions.
 -----------------------------------------------------------------------
 local function ToastSpawnPoint()
-    return _G.Toaster and _G.Toaster:SpawnPoint() or "BOTOMRIGHT"
+    return _G.Toaster and _G.Toaster:SpawnPoint() or "BOTTOMRIGHT"
 end
 
 local function ToastTitleColors(urgency)
