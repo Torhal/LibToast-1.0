@@ -6,7 +6,7 @@
 ## LoadOnDemand: 1
 ## X-Date: @project-date-iso@
 ## X-Category: Libraries
-## X-License: Ace3 BSD-like license
+## X-License: All Rights Reserved
 
 LibStub\LibStub.lua
 lib.xml
