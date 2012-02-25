@@ -1,4 +1,4 @@
-## Interface: 40200
+## Interface: 40300
 ## Title: Lib: Toast-1.0
 ## Notes: Provides one or many informational windows with optional interactive widgets.
 ## Author: Torhal
