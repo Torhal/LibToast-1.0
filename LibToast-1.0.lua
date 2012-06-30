@@ -18,7 +18,7 @@ local MAJOR = "LibToast-1.0"
 
 _G.assert(LibStub, MAJOR .. " requires LibStub")
 
-local MINOR = 1 -- Should be manually increased
+local MINOR = 2 -- Should be manually increased
 local lib, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not lib then
@@ -269,8 +269,8 @@ local function _acquireToast()
         toast:Hide()
 
         local toast_icon = toast:CreateTexture(nil, "BORDER")
-        toast_icon:SetWidth(DEFAULT_ICON_SIZE)
-        toast_icon:SetHeight(DEFAULT_ICON_SIZE)
+
+        toast_icon:SetSize(DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE)
         toast.icon = toast_icon
 
         local title = toast:CreateFontString(nil, "BORDER", "FriendsFont_Normal")
@@ -322,9 +322,13 @@ local function _acquireToast()
             endAlpha = 0,
         }
     end
-    toast:SetWidth(DEFAULT_TOAST_WIDTH)
-    toast:SetHeight(DEFAULT_TOAST_HEIGHT)
+    toast:SetSize(DEFAULT_TOAST_WIDTH, DEFAULT_TOAST_HEIGHT)
     toast:SetBackdrop(DEFAULT_TOAST_BACKDROP)
+
+    if _G.Toaster then
+        local icon_size = _G.Toaster:IconSize()
+        toast.icon:SetSize(icon_size, icon_size)
+    end
     return toast
 end
 
@@ -421,7 +425,7 @@ function lib:Spawn(template_name, ...)
             current_toast.icon:SetPoint("TOPLEFT", current_toast, "TOPRIGHT", 5, -10)
         end
     else
-        current_toast.icon:SetPoint("TOPLEFT", current_toast, "TOPLEFT", 5, -10)
+        current_toast.icon:SetPoint("TOPLEFT", current_toast, "TOPLEFT", 10, -10)
     end
 
     if floating_icon or not current_toast.icon:GetTexture() then
