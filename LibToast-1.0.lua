@@ -174,6 +174,22 @@ end
 -----------------------------------------------------------------------
 -- Helper functions.
 -----------------------------------------------------------------------
+local function _positionToastIcon(toast)
+    toast.icon:ClearAllPoints()
+
+    if ToastHasFloatingIcon() then
+        local lower_point = ToastSpawnPoint():lower()
+
+        if lower_point:find("right") then
+            toast.icon:SetPoint("TOPRIGHT", toast, "TOPLEFT", -5, -10)
+        elseif lower_point:find("left") then
+            toast.icon:SetPoint("TOPLEFT", toast, "TOPRIGHT", 5, -10)
+        end
+    else
+        toast.icon:SetPoint("TOPLEFT", toast, "TOPLEFT", 10, -10)
+    end
+end
+
 local function _reclaimButton(button)
     button:Hide()
     button:ClearAllPoints()
@@ -211,23 +227,11 @@ local function _reclaimToast(toast)
         table.remove(active_toasts, remove_index):ClearAllPoints()
     end
     local spawn_point = ToastSpawnPoint()
-    local lower_point = spawn_point:lower()
-    local floating_icon = ToastHasFloatingIcon()
 
     for index = 1, #active_toasts do
         local indexed_toast = active_toasts[index]
         indexed_toast:ClearAllPoints()
-        indexed_toast.icon:ClearAllPoints()
-
-        if floating_icon then
-            if lower_point:find("right") then
-                indexed_toast.icon:SetPoint("TOPRIGHT", indexed_toast, "TOPLEFT", -5, -10)
-            elseif lower_point:find("left") then
-                indexed_toast.icon:SetPoint("TOPLEFT", indexed_toast, "TOPRIGHT", 5, -10)
-            end
-        else
-            indexed_toast.icon:SetPoint("TOPLEFT", indexed_toast, "TOPLEFT", 5, -10)
-        end
+        _positionToastIcon(indexed_toast)
 
         if index == 1 then
             indexed_toast:SetPoint(spawn_point, _G.UIParent, spawn_point, OFFSET_X[spawn_point], OFFSET_Y[spawn_point])
@@ -412,23 +416,9 @@ function lib:Spawn(template_name, ...)
         fade_in_info.finishedFunc = nil
         fade_in_info.finishedArg1 = nil
     end
-    local spawn_point = ToastSpawnPoint()
-    local lower_point = spawn_point:lower()
-    local floating_icon = ToastHasFloatingIcon()
+    _positionToastIcon(current_toast)
 
-    current_toast.icon:ClearAllPoints()
-
-    if floating_icon then
-        if lower_point:find("right") then
-            current_toast.icon:SetPoint("TOPRIGHT", current_toast, "TOPLEFT", -5, -10)
-        elseif lower_point:find("left") then
-            current_toast.icon:SetPoint("TOPLEFT", current_toast, "TOPRIGHT", 5, -10)
-        end
-    else
-        current_toast.icon:SetPoint("TOPLEFT", current_toast, "TOPLEFT", 10, -10)
-    end
-
-    if floating_icon or not current_toast.icon:GetTexture() then
+    if ToastHasFloatingIcon() or not current_toast.icon:GetTexture() then
         current_toast.title:SetPoint("TOPLEFT", current_toast, "TOPLEFT", 10, -10)
     else
         current_toast.title:SetPoint("TOPLEFT", current_toast, "TOPLEFT", current_toast.icon:GetWidth() + 15, -10)
@@ -454,6 +444,8 @@ function lib:Spawn(template_name, ...)
     -----------------------------------------------------------------------
     -- Anchor and spawn.
     -----------------------------------------------------------------------
+    local spawn_point = ToastSpawnPoint()
+
     if #active_toasts > 0 then
         current_toast:SetPoint(spawn_point, active_toasts[#active_toasts], SIBLING_ANCHORS[spawn_point], 0, SIBLING_OFFSET_Y[spawn_point])
     else
