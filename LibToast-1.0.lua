@@ -18,7 +18,7 @@ local MAJOR = "LibToast-1.0"
 
 _G.assert(LibStub, MAJOR .. " requires LibStub")
 
-local MINOR = 3 -- Should be manually increased
+local MINOR = 4 -- Should be manually increased
 local lib, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not lib then
@@ -167,8 +167,12 @@ local function ToastHasFloatingIcon()
     return _G.Toaster and _G.Toaster:FloatingIcon()
 end
 
-local function ToastsAreSuppressed()
-    return _G.Toaster and _G.Toaster:HideToasts()
+local function ToastsAreSuppressed(source_addon)
+    return _G.Toaster and (_G.Toaster:HideToasts() or _G.Toaster:HideToastsFromSource(source_addon))
+end
+
+local function ToastsAreMuted(source_addon)
+    return _G.Toaster and (_G.Toaster:MuteToasts() or _G.Toaster:MuteToastsFromSource(source_addon))
 end
 
 -----------------------------------------------------------------------
@@ -210,6 +214,7 @@ local function _reclaimToast(toast)
     toast.is_persistent = nil
     toast.template_name = nil
     toast.payload = nil
+    toast.sound_file = nil
     toast:Hide()
 
     _G.UIFrameFadeRemoveFrame(toast)
@@ -359,8 +364,9 @@ function lib:Spawn(template_name, ...)
     if not self.templates[template_name] then
         error(METHOD_USAGE_FORMAT:format("Spawn", ("\"%s\" does not match a registered template"):format(template_name)), 2)
     end
+    local source_addon = _G.select(3, ([[\]]):split(_G.debugstack(2)))
 
-    if ToastsAreSuppressed() then
+    if ToastsAreSuppressed(source_addon) then
         return
     end
 
@@ -373,6 +379,7 @@ function lib:Spawn(template_name, ...)
     end
     current_toast = _acquireToast()
     current_toast.template_name = template_name
+    current_toast.source = source_addon
 
     -----------------------------------------------------------------------
     -- Reset defaults.
@@ -453,6 +460,10 @@ function lib:Spawn(template_name, ...)
     end
     active_toasts[#active_toasts + 1] = current_toast
     _G.UIFrameFade(current_toast, fade_in_info)
+
+    if current_toast.sound_file and not ToastsAreMuted(source_addon) then
+        _G.PlaySoundFile(current_toast.sound_file)
+    end
 end
 
 -----------------------------------------------------------------------
@@ -604,4 +615,8 @@ end
 
 function toast_proxy:MakePersistent()
     current_toast.is_persistent = true
+end
+
+function toast_proxy:SetSoundFile(file_path)
+    current_toast.sound_file = file_path
 end
