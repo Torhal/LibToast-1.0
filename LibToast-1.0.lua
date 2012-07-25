@@ -18,7 +18,7 @@ local MAJOR = "LibToast-1.0"
 
 _G.assert(LibStub, MAJOR .. " requires LibStub")
 
-local MINOR = 4 -- Should be manually increased
+local MINOR = 5 -- Should be manually increased
 local lib, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not lib then
@@ -89,6 +89,7 @@ local DEFAULT_TEXT_COLORS = {
     g = 0.518,
     b = 0.541
 }
+
 local TOAST_BUTTONS = {
     primary_button = true,
     secondary_button = true,
@@ -387,6 +388,7 @@ function lib:Spawn(template_name, ...)
     current_toast.title:SetText(nil)
     current_toast.text:SetText(nil)
     current_toast.icon:SetTexture(nil)
+    current_toast.icon:SetTexCoord(0, 1, 0, 1)
 
     -----------------------------------------------------------------------
     -- Run constructor.
@@ -508,6 +510,10 @@ end
 
 function toast_proxy:SetIconTexture(texture)
     current_toast.icon:SetTexture(texture)
+end
+
+function toast_proxy:SetIconTexCoord(...)
+    current_toast.icon:SetTexCoord(...)
 end
 
 local _initializedToastButton
