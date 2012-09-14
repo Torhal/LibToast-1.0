@@ -18,7 +18,7 @@ local MAJOR = "LibToast-1.0"
 
 _G.assert(LibStub, MAJOR .. " requires LibStub")
 
-local MINOR = 6 -- Should be manually increased
+local MINOR = 7 -- Should be manually increased
 local lib, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not lib then
@@ -221,12 +221,27 @@ local function CallingObject()
     return calling_object
 end
 
+local function StringValue(input)
+    local input_type = _G.type(input)
+
+    if input_type == "function" then
+        local output = input()
+
+        if _G.type(output) ~= "string" or output == "" then
+            return
+        end
+        return output
+    elseif input_type == "string" then
+        return input
+    end
+end
+
 if not lib.templates[lib.sink_template] then
     lib.templates[lib.sink_template] = function(toast, ...)
         local calling_object = CallingObject()
-        toast:SetTitle(lib.addon_names[calling_object])
+        toast:SetTitle(StringValue(lib.addon_names[calling_object]))
         toast:SetText(...)
-        toast:SetIconTexture(lib.sink_icons[calling_object])
+        toast:SetIconTexture(StringValue(lib.sink_icons[calling_object]))
     end
 end
 
@@ -532,15 +547,17 @@ end
 
 function lib:DefineSink(display_name, texture_path)
     local is_lib = (self == lib)
+    local path_type = _G.type(texture_path)
+    local display_type = _G.type(display_name)
 
-    if texture_path and (_G.type(texture_path) ~= "string" or texture_path == "") then
-        error(METHOD_USAGE_FORMAT:format(is_lib and "DefineSink" or "DefineSinkToast", "icon_path must be a non-empty string or nil"), 2)
+    if texture_path and (path_type ~= "function" and (path_type ~= "string" or texture_path == "")) then
+        error(METHOD_USAGE_FORMAT:format(is_lib and "DefineSink" or "DefineSinkToast", "texture_path must be a non-empty string, a function that returns one, or nil"), 2)
     end
     local source_addon = _G.select(3, ([[\]]):split(_G.debugstack(2)))
     lib.addon_objects[display_name] = self
 
-    if display_name and (_G.type(display_name) ~= "string" or display_name == "") then
-        error(METHOD_USAGE_FORMAT:format(is_lib and "DefineSink" or "DefineSinkToast", "display_name must be a non-empty string or nil"), 2)
+    if display_name and (display_type ~= "function" and (display_type ~= "string" or display_name == "")) then
+        error(METHOD_USAGE_FORMAT:format(is_lib and "DefineSink" or "DefineSinkToast", "display_name must be a non-empty string, a function that returns one, or nil"), 2)
     end
     lib.sink_icons[self] = texture_path
     lib.addon_names[self] = display_name
