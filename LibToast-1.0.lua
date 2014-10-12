@@ -67,7 +67,7 @@ local DEFAULT_TOAST_HEIGHT = 50
 local DEFAULT_ICON_SIZE = 30
 
 local DEFAULT_TOAST_BACKDROP = {
-    bgFile = [[Interface\CHATFRAME\CHATFRAMEBACKGROUND]],
+    bgFile = [[Interface\FriendsFrame\UI-Toast-Background]],
     edgeFile = [[Interface\FriendsFrame\UI-Toast-Border]],
     tile = true,
     tileSize = 12,
@@ -364,8 +364,7 @@ local function _acquireToast()
         focus:SetScript("OnShow", _hideDismissButton)
 
         local dismiss_button = _G.CreateFrame("Button", nil, toast)
-        dismiss_button:SetWidth(18)
-        dismiss_button:SetHeight(18)
+        dismiss_button:SetSize(18, 18)
         dismiss_button:SetPoint("TOPRIGHT", toast, "TOPRIGHT", -4, -4)
         dismiss_button:SetFrameStrata("DIALOG")
         dismiss_button:SetFrameLevel(toast:GetFrameLevel() + 2)
