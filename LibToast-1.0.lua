@@ -167,7 +167,7 @@ end
 -- Settings functions.
 -----------------------------------------------------------------------
 local function ToastSpawnPoint()
-    return _G.Toaster and _G.Toaster:SpawnPoint() or "BOTTOMRIGHT"
+    return _G.Toaster and _G.Toaster:SpawnPoint() or (_G.IsMacClient() and "TOPRIGHT" or "BOTTOMRIGHT")
 end
 
 local function ToastTitleColors(urgency)
