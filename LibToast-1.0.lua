@@ -18,7 +18,7 @@ local MAJOR = "LibToast-1.0"
 
 _G.assert(LibStub, MAJOR .. " requires LibStub")
 
-local MINOR = 7 -- Should be manually increased
+local MINOR = 8 -- Should be manually increased
 local lib, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not lib then
@@ -622,6 +622,10 @@ end
 
 function toast_proxy:SetFormattedText(text, ...)
     current_toast.text:SetFormattedText(text, ...)
+end
+
+function toast_proxy:SetIconAtlas(...)
+    current_toast.icon:SetAtlas(...)
 end
 
 function toast_proxy:SetIconTexture(texture)
