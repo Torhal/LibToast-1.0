@@ -18,7 +18,7 @@ local MAJOR = "LibToast-1.0"
 
 _G.assert(LibStub, MAJOR .. " requires LibStub")
 
-local MINOR = 8 -- Should be manually increased
+local MINOR = 9 -- Should be manually increased
 local lib, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not lib then
@@ -37,6 +37,7 @@ lib.button_heap = lib.button_heap or {}
 
 lib.sink_icons = lib.sink_icons or {}
 lib.sink_template = lib.sink_template or {} -- Cheating here, since users can only use strings.
+lib.sink_titles = lib.sink_titles or {}
 lib.registered_sink = lib.registered_sink
 lib.addon_names = lib.addon_names or {}
 lib.addon_objects = lib.addon_objects or {}
@@ -239,7 +240,7 @@ end
 if not lib.templates[lib.sink_template] then
     lib.templates[lib.sink_template] = function(toast, ...)
         local calling_object = CallingObject()
-        toast:SetTitle(StringValue(lib.addon_names[calling_object]))
+        toast:SetTitle(StringValue(lib.sink_titles[calling_object]))
         toast:SetText(...)
         toast:SetIconTexture(StringValue(lib.sink_icons[calling_object]))
     end
@@ -436,7 +437,7 @@ function lib:Spawn(template_name, ...)
     end
     local source_addon
 
-    if self == lib then
+    if is_lib then
         source_addon = _G.select(3, ([[\]]):split(_G.debugstack(2)))
     else
         source_addon = lib.addon_names[self] or _G.UNKNOWN
@@ -558,8 +559,9 @@ function lib:DefineSink(display_name, texture_path)
     if display_name and (display_type ~= "function" and (display_type ~= "string" or display_name == "")) then
         error(METHOD_USAGE_FORMAT:format(is_lib and "DefineSink" or "DefineSinkToast", "display_name must be a non-empty string, a function that returns one, or nil"), 2)
     end
+    lib.addon_names[self] = source_addon or _G.UNKNOWN
     lib.sink_icons[self] = texture_path
-    lib.addon_names[self] = display_name
+    lib.sink_titles[self] = display_name
 
     if not lib.registered_sink then
         local LibSink = LibStub("LibSink-2.0")
