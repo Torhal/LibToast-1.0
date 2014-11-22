@@ -40,7 +40,6 @@ lib.sink_template = lib.sink_template or {} -- Cheating here, since users can on
 lib.sink_titles = lib.sink_titles or {}
 lib.registered_sink = lib.registered_sink
 lib.addon_names = lib.addon_names or {}
-lib.addon_objects = lib.addon_objects or {}
 
 -----------------------------------------------------------------------
 -- Variables.
@@ -553,12 +552,10 @@ function lib:DefineSink(display_name, texture_path)
     if texture_path and (path_type ~= "function" and (path_type ~= "string" or texture_path == "")) then
         error(METHOD_USAGE_FORMAT:format(is_lib and "DefineSink" or "DefineSinkToast", "texture_path must be a non-empty string, a function that returns one, or nil"), 2)
     end
-    local source_addon = _G.select(3, ([[\]]):split(_G.debugstack(2)))
-    lib.addon_objects[display_name] = self
-
     if display_name and (display_type ~= "function" and (display_type ~= "string" or display_name == "")) then
         error(METHOD_USAGE_FORMAT:format(is_lib and "DefineSink" or "DefineSinkToast", "display_name must be a non-empty string, a function that returns one, or nil"), 2)
     end
+    local source_addon = _G.select(3, ([[\]]):split(_G.debugstack(2)))
     lib.addon_names[self] = source_addon or _G.UNKNOWN
     lib.sink_icons[self] = texture_path
     lib.sink_titles[self] = display_name
