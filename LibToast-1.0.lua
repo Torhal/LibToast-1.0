@@ -18,7 +18,7 @@ local MAJOR = "LibToast-1.0"
 
 _G.assert(LibStub, MAJOR .. " requires LibStub")
 
-local MINOR = 11 -- Should be manually increased
+local MINOR = 12 -- Should be manually increased
 local lib, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not lib then
@@ -217,24 +217,24 @@ local function ToastBackgroundColors(urgency)
     end
 end
 
-local function ToastDuration()
-    return _G.Toaster and _G.Toaster:Duration() or DEFAULT_FADE_HOLD_TIME
+local function ToastDuration(addonName)
+    return _G.Toaster and _G.Toaster:Duration(addonName) or DEFAULT_FADE_HOLD_TIME
 end
 
-local function ToastOpacity()
-    return _G.Toaster and _G.Toaster:Opacity() or 0.75
+local function ToastOpacity(addonName)
+    return _G.Toaster and _G.Toaster:Opacity(addonName) or 0.75
 end
 
-local function ToastHasFloatingIcon()
-    return _G.Toaster and _G.Toaster:FloatingIcon()
+local function ToastHasFloatingIcon(addonName)
+    return _G.Toaster and _G.Toaster:FloatingIcon(addonName)
 end
 
-local function ToastsAreSuppressed(source_addon)
-    return _G.Toaster and (_G.Toaster:HideToasts() or _G.Toaster:HideToastsFromSource(source_addon))
+local function ToastsAreSuppressed(addonName)
+    return _G.Toaster and (_G.Toaster:HideToasts() or _G.Toaster:HideToastsFromSource(addonName))
 end
 
-local function ToastsAreMuted(source_addon)
-    return _G.Toaster and (_G.Toaster:MuteToasts() or _G.Toaster:MuteToastsFromSource(source_addon))
+local function ToastsAreMuted(addonName)
+    return _G.Toaster and (_G.Toaster:MuteToasts() or _G.Toaster:MuteToastsFromSource(addonName))
 end
 
 -----------------------------------------------------------------------
@@ -286,7 +286,7 @@ end
 local function _positionToastIcon(toast)
     toast.icon:ClearAllPoints()
 
-    if ToastHasFloatingIcon() then
+    if ToastHasFloatingIcon(toast.source) then
         local lower_point = POINT_TRANSLATION[GetEffectiveSpawnPoint(toast)]:lower()
 
         if lower_point:find("right") then
@@ -383,7 +383,7 @@ local function _dismissToast(frame, button, down)
     _reclaimToast(frame:GetParent())
 end
 
-local function _acquireToast()
+local function _acquireToast(addonName)
     local toast = table.remove(toast_heap)
 
     if not toast then
@@ -485,10 +485,11 @@ local function _acquireToast()
     end
     toast:SetSize(DEFAULT_TOAST_WIDTH, DEFAULT_TOAST_HEIGHT)
     toast:SetBackdrop(DEFAULT_TOAST_BACKDROP)
+    toast:SetBackdropBorderColor(1, 1, 1)
 
     if _G.Toaster then
-        local icon_size = _G.Toaster:IconSize()
-        toast.icon:SetSize(icon_size, icon_size)
+        local iconSize = _G.Toaster:IconSize(addonName)
+        toast.icon:SetSize(iconSize, iconSize)
     end
     return toast
 end
@@ -520,15 +521,15 @@ function lib:Spawn(template_name, ...)
     if not lib.templates[template_name] then
         error(METHOD_USAGE_FORMAT:format(is_lib and "Spawn" or "SpawnToast", ("\"%s\" does not match a registered template"):format(template_name)), 2)
     end
-    local source_addon
+    local addonName
 
     if is_lib then
-        source_addon = _G.select(3, ([[\]]):split(_G.debugstack(2)))
+        addonName = _G.select(3, ([[\]]):split(_G.debugstack(2)))
     else
-        source_addon = lib.addon_names[self] or _G.UNKNOWN
+        addonName = lib.addon_names[self] or _G.UNKNOWN
     end
 
-    if ToastsAreSuppressed(source_addon) then
+    if ToastsAreSuppressed(addonName) then
         return
     end
 
@@ -539,9 +540,9 @@ function lib:Spawn(template_name, ...)
             end
         end
     end
-    current_toast = _acquireToast()
+    current_toast = _acquireToast(addonName)
     current_toast.template_name = template_name
-    current_toast.source = source_addon
+    current_toast.source = addonName
 
     -----------------------------------------------------------------------
     -- Reset defaults.
@@ -569,14 +570,14 @@ function lib:Spawn(template_name, ...)
     current_toast.title:SetTextColor(ToastTitleColors(urgency))
     current_toast.text:SetTextColor(ToastTextColors(urgency))
 
-    local opacity = ToastOpacity()
+    local opacity = ToastOpacity(addonName)
     local r, g, b = ToastBackgroundColors(urgency)
     current_toast:SetBackdropColor(r, g, b, opacity)
 
     r, g, b = current_toast:GetBackdropBorderColor()
     current_toast:SetBackdropBorderColor(r, g, b, opacity)
 
-    if ToastHasFloatingIcon() or not current_toast.icon:GetTexture() then
+    if ToastHasFloatingIcon(addonName) or not current_toast.icon:GetTexture() then
         current_toast.title:SetPoint("TOPLEFT", current_toast, "TOPLEFT", 10, -10)
     else
         current_toast.title:SetPoint("TOPLEFT", current_toast, "TOPLEFT", current_toast.icon:GetWidth() + 15, -10)
@@ -615,7 +616,7 @@ function lib:Spawn(template_name, ...)
 
     _positionToastIcon(current_toast)
 
-    if current_toast.sound_file and not ToastsAreMuted(source_addon) then
+    if current_toast.sound_file and not ToastsAreMuted(addonName) then
         _G.PlaySoundFile(current_toast.sound_file)
     end
 
@@ -629,7 +630,7 @@ function lib:Spawn(template_name, ...)
         if current_toast:IsMouseOver() then
             current_toast.waitAndAnimateOut.animateOut:SetStartDelay(1)
         else
-            current_toast.waitAndAnimateOut.animateOut:SetStartDelay(ToastDuration())
+            current_toast.waitAndAnimateOut.animateOut:SetStartDelay(ToastDuration(addonName))
             current_toast.waitAndAnimateOut:Play()
         end
     end
