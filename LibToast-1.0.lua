@@ -18,7 +18,7 @@ local MAJOR = "LibToast-1.0"
 
 _G.assert(LibStub, MAJOR .. " requires LibStub")
 
-local MINOR = 12 -- Should be manually increased
+local MINOR = 13 -- Should be manually increased
 local lib, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not lib then
@@ -28,18 +28,19 @@ end -- No upgrade needed
 -----------------------------------------------------------------------
 -- Migrations.
 -----------------------------------------------------------------------
+lib.active_toasts = lib.active_toasts or {}
+lib.queued_toasts = lib.queued_toasts or {}
 lib.templates = lib.templates or {}
 lib.unique_templates = lib.unique_templates or {}
-lib.active_toasts = lib.active_toasts or {}
 
-lib.toast_heap = lib.toast_heap or {}
 lib.button_heap = lib.button_heap or {}
+lib.toast_heap = lib.toast_heap or {}
 
+lib.addon_names = lib.addon_names or {}
+lib.registered_sink = lib.registered_sink
 lib.sink_icons = lib.sink_icons or {}
 lib.sink_template = lib.sink_template or {} -- Cheating here, since users can only use strings.
 lib.sink_titles = lib.sink_titles or {}
-lib.registered_sink = lib.registered_sink
-lib.addon_names = lib.addon_names or {}
 
 -----------------------------------------------------------------------
 -- Variables.
@@ -52,12 +53,15 @@ local calling_object
 -- Constants.
 -----------------------------------------------------------------------
 local active_toasts = lib.active_toasts
+local queued_toasts = lib.queued_toasts
 local toast_heap = lib.toast_heap
 local button_heap = lib.button_heap
 
 local toast_proxy = {}
 
 local METHOD_USAGE_FORMAT = MAJOR .. ":%s() - %s."
+
+local MAX_ACTIVE_TOASTS = 10
 
 local DEFAULT_FADE_HOLD_TIME = 5
 local DEFAULT_FADE_IN_TIME = 0.5
@@ -177,6 +181,11 @@ elseif LOCALE == "zhTW" then
     L_TOAST = "彈出視窗"
     L_TOAST_DESC = "在彈出視窗顯示訊息。"
 end
+
+-----------------------------------------------------------------------
+-- Variables.
+-----------------------------------------------------------------------
+local queuedAddOnName
 
 -----------------------------------------------------------------------
 -- Settings functions.
@@ -351,6 +360,12 @@ local function _reclaimToast(toast)
             indexed_toast:SetPoint(spawn_point, active_toasts[index - 1], SIBLING_ANCHORS[spawn_point], 0, SIBLING_OFFSET_Y[spawn_point])
         end
     end
+
+    local toastData = table.remove(queued_toasts, 1)
+    if toastData then
+        queuedAddOnName = toastData.addonName
+        lib:Spawn(toastData.template, _G.unpack(toastData.payload))
+    end
 end
 
 local function AnimationDismissToast(animation)
@@ -497,33 +512,36 @@ end
 -----------------------------------------------------------------------
 -- Library methods.
 -----------------------------------------------------------------------
-function lib:Register(template_name, constructor, is_unique)
-    local is_lib = (self == lib)
+function lib:Register(templateName, constructor, isUnique)
+    local isLib = (self == lib)
 
-    if _G.type(template_name) ~= "string" or template_name == "" then
-        error(METHOD_USAGE_FORMAT:format(is_lib and "Register" or "RegisterToast", "template_name must be a non-empty string"), 2)
+    if _G.type(templateName) ~= "string" or templateName == "" then
+        error(METHOD_USAGE_FORMAT:format(isLib and "Register" or "RegisterToast", "template_name must be a non-empty string"), 2)
     end
 
     if _G.type(constructor) ~= "function" then
-        error(METHOD_USAGE_FORMAT:format(is_lib and "Register" or "RegisterToast", "constructor must be a function"), 2)
+        error(METHOD_USAGE_FORMAT:format(isLib and "Register" or "RegisterToast", "constructor must be a function"), 2)
     end
-    lib.templates[template_name] = constructor
-    lib.unique_templates[template_name] = is_unique or nil
+    lib.templates[templateName] = constructor
+    lib.unique_templates[templateName] = isUnique or nil
 end
 
-function lib:Spawn(template_name, ...)
-    local is_lib = (self == lib)
+function lib:Spawn(templateName, ...)
+    local isLib = (self == lib)
 
-    if not template_name or (not internal_call and (_G.type(template_name) ~= "string" or template_name == "")) then
-        error(METHOD_USAGE_FORMAT:format(is_lib and "Spawn" or "SpawnToast", "template_name must be a non-empty string"), 2)
+    if not templateName or (not internal_call and (_G.type(templateName) ~= "string" or templateName == "")) then
+        error(METHOD_USAGE_FORMAT:format(isLib and "Spawn" or "SpawnToast", "template_name must be a non-empty string"), 2)
     end
 
-    if not lib.templates[template_name] then
-        error(METHOD_USAGE_FORMAT:format(is_lib and "Spawn" or "SpawnToast", ("\"%s\" does not match a registered template"):format(template_name)), 2)
+    if not lib.templates[templateName] then
+        error(METHOD_USAGE_FORMAT:format(isLib and "Spawn" or "SpawnToast", ("\"%s\" does not match a registered template"):format(templateName)), 2)
     end
     local addonName
 
-    if is_lib then
+    if queuedAddOnName then
+        addonName = queuedAddOnName
+        queuedAddOnName = nil
+    elseif isLib then
         addonName = _G.select(3, ([[\]]):split(_G.debugstack(2)))
     else
         addonName = lib.addon_names[self] or _G.UNKNOWN
@@ -533,15 +551,25 @@ function lib:Spawn(template_name, ...)
         return
     end
 
-    if lib.unique_templates[template_name] then
+    if lib.unique_templates[templateName] then
         for index = 1, #active_toasts do
-            if active_toasts[index].template_name == template_name then
+            if active_toasts[index].template_name == templateName then
                 return
             end
         end
     end
+
+    if #active_toasts >= MAX_ACTIVE_TOASTS then
+        table.insert(queued_toasts, {
+            addonName = addonName,
+            template = templateName,
+            payload = { ... }
+        })
+        return
+    end
+
     current_toast = _acquireToast(addonName)
-    current_toast.template_name = template_name
+    current_toast.template_name = templateName
     current_toast.source = addonName
 
     -----------------------------------------------------------------------
@@ -556,7 +584,7 @@ function lib:Spawn(template_name, ...)
     -- Run constructor.
     -----------------------------------------------------------------------
     calling_object = self
-    lib.templates[template_name](toast_proxy, ...)
+    lib.templates[templateName](toast_proxy, ...)
 
     if not current_toast.title:GetText() and not current_toast.text:GetText() and not current_toast.icon:GetTexture() then
         _reclaimToast(current_toast)
