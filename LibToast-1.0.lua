@@ -18,7 +18,7 @@ local MAJOR = "LibToast-1.0"
 
 _G.assert(LibStub, MAJOR .. " requires LibStub")
 
-local MINOR = 13 -- Should be manually increased
+local MINOR = 14 -- Should be manually increased
 local LibToast, previousMinorVersion = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not LibToast then
@@ -363,7 +363,7 @@ local function _reclaimToast(toast)
     end
 
     local toastData = table.remove(QueuedToasts, 1)
-    if toastData then
+    if toastData and toastData.addonName and toastData.template then
         QueuedAddOnName = toastData.addonName
         LibToast:Spawn(toastData.template, _G.unpack(toastData.payload))
     end
