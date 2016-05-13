@@ -363,7 +363,7 @@ local function _reclaimToast(toast)
     end
 
     local toastData = table.remove(QueuedToasts, 1)
-    if toastData and toastData.addonName and toastData.template then
+    if toastData and toastData.addonName and _G.type(toastData.template) == "string" and toastData.template ~= "" then
         QueuedAddOnName = toastData.addonName
         LibToast:Spawn(toastData.template, _G.unpack(toastData.payload))
     end
