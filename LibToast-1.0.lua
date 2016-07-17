@@ -18,7 +18,7 @@ local MAJOR = "LibToast-1.0"
 
 _G.assert(LibStub, MAJOR .. " requires LibStub")
 
-local MINOR = 14 -- Should be manually increased
+local MINOR = 15 -- Should be manually increased
 local LibToast, previousMinorVersion = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not LibToast then
@@ -451,12 +451,14 @@ local function _acquireToast(addonName)
 
         local toastAnimateInFirst = toastAnimateIn:CreateAnimation("Alpha")
         toastAnimateInFirst:SetOrder(1)
-        toastAnimateInFirst:SetChange(-1)
+        toastAnimateInFirst:SetFromAlpha(1)
+        toastAnimateInFirst:SetToAlpha(0)
         toastAnimateInFirst:SetDuration(0)
 
         local toastAnimateInSecond = toastAnimateIn:CreateAnimation("Alpha")
         toastAnimateInSecond:SetOrder(2)
-        toastAnimateInSecond:SetChange(1)
+        toastAnimateInSecond:SetFromAlpha(0)
+        toastAnimateInSecond:SetToAlpha(1)
         toastAnimateInSecond:SetDuration(0.2)
 
         local toastWaitAndAnimateOut = toast:CreateAnimationGroup()
@@ -464,7 +466,8 @@ local function _acquireToast(addonName)
 
         local toastAnimateOut = toastWaitAndAnimateOut:CreateAnimation("Alpha")
         toastAnimateOut:SetStartDelay(DEFAULT_FADE_HOLD_TIME)
-        toastAnimateOut:SetChange(-1)
+        toastAnimateOut:SetFromAlpha(1)
+        toastAnimateOut:SetToAlpha(0)
         toastAnimateOut:SetDuration(DEFAULT_FADE_OUT_TIME)
         toastAnimateOut:SetScript("OnFinished", AnimationDismissToast)
 
@@ -491,12 +494,14 @@ local function _acquireToast(addonName)
 
         local glowAnimateInFirst = glowAnimateIn:CreateAnimation("Alpha")
         glowAnimateInFirst:SetOrder(1)
-        glowAnimateInFirst:SetChange(1)
+        glowAnimateInFirst:SetFromAlpha(0)
+        glowAnimateInFirst:SetToAlpha(1)
         glowAnimateInFirst:SetDuration(0.2)
 
         local glowAnimateInSecond = glowAnimateIn:CreateAnimation("Alpha")
         glowAnimateInSecond:SetOrder(2)
-        glowAnimateInSecond:SetChange(-1)
+        glowAnimateInSecond:SetFromAlpha(1)
+        glowAnimateInSecond:SetToAlpha(0)
         glowAnimateInSecond:SetDuration(0.5)
     end
 
