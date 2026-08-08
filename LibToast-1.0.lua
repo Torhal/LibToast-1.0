@@ -14,9 +14,6 @@ if not LibToast then
     return
 end
 
--- This is the control AddOn.
-local Toaster = _G.Toaster
-
 --------------------------------------------------------------------------------
 ---- Migrations
 --------------------------------------------------------------------------------
@@ -183,18 +180,26 @@ end
 --------------------------------------------------------------------------------
 
 local function ToastSpawnPoint()
+    local Toaster = _G.Toaster
+
     return Toaster and Toaster:SpawnPoint() or DEFAULT_OS_SPAWN_POINT
 end
 
 local function ToastOffsetX()
+    local Toaster = _G.Toaster
+
     return (Toaster and Toaster.SpawnOffsetX) and Toaster:SpawnOffsetX() or nil
 end
 
 local function ToastOffsetY()
+    local Toaster = _G.Toaster
+
     return (Toaster and Toaster.SpawnOffsetY) and Toaster:SpawnOffsetY() or nil
 end
 
 local function ToastTitleColors(urgencyLevel)
+    local Toaster = _G.Toaster
+
     if Toaster then
         return Toaster:TitleColors(urgencyLevel)
     else
@@ -203,6 +208,8 @@ local function ToastTitleColors(urgencyLevel)
 end
 
 local function ToastTextColors(urgencyLevel)
+    local Toaster = _G.Toaster
+
     if Toaster then
         return Toaster:TextColors(urgencyLevel)
     else
@@ -211,6 +218,8 @@ local function ToastTextColors(urgencyLevel)
 end
 
 local function ToastBackgroundColors(urgencyLevel)
+    local Toaster = _G.Toaster
+
     if Toaster then
         return Toaster:BackgroundColors(urgencyLevel)
     else
@@ -219,22 +228,32 @@ local function ToastBackgroundColors(urgencyLevel)
 end
 
 local function ToastDuration(addonName)
+    local Toaster = _G.Toaster
+
     return Toaster and Toaster:Duration(addonName) or DEFAULT_FADE_HOLD_TIME
 end
 
 local function ToastOpacity(addonName)
+    local Toaster = _G.Toaster
+
     return Toaster and Toaster:Opacity(addonName) or 0.75
 end
 
 local function ToastHasFloatingIcon(addonName)
+    local Toaster = _G.Toaster
+
     return Toaster and Toaster:FloatingIcon(addonName)
 end
 
 local function ToastsAreSuppressed(addonName)
+    local Toaster = _G.Toaster
+
     return Toaster and (Toaster:HideToasts() or Toaster:HideToastsFromSource(addonName))
 end
 
 local function ToastsAreMuted(addonName)
+    local Toaster = _G.Toaster
+
     return Toaster and (Toaster:MuteToasts() or Toaster:MuteToastsFromSource(addonName))
 end
 
@@ -509,6 +528,8 @@ local function _acquireToast(addonName)
     toast:SetSize(DEFAULT_TOAST_WIDTH, DEFAULT_TOAST_HEIGHT)
     toast:SetBackdrop(DEFAULT_TOAST_BACKDROP)
     toast:SetBackdropBorderColor(1, 1, 1)
+
+    local Toaster = _G.Toaster
 
     if Toaster then
         local iconSize = Toaster:IconSize(addonName)
