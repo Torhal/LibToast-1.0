@@ -6,7 +6,7 @@ local MAJOR = "LibToast-1.0"
 
 assert(LibStub, MAJOR .. " requires LibStub")
 
-local MINOR = 15 -- Should be manually increased
+local MINOR = 16 -- Should be manually increased
 local LibToast, previousMinorVersion = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not LibToast then
