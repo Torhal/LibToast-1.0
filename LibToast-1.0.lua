@@ -267,7 +267,7 @@ local function GetAddOnNameFromDebugStack()
     return select(3, ([[\]]):split(stackString)) or select(3, ([[/]]):split(stackString))
 end
 
-local function AnimationHideParent(animation)
+local function AnimationGroupHideParent(animation)
     animation:GetParent():Hide()
 end
 
@@ -515,7 +515,7 @@ local function _acquireToast(addonName)
         glowFrame.glow = glowTexture
 
         local glowAnimateIn = glowTexture:CreateAnimationGroup()
-        glowAnimateIn:SetScript("OnFinished", AnimationHideParent)
+        glowAnimateIn:SetScript("OnFinished", AnimationGroupHideParent)
         glowTexture.animateIn = glowAnimateIn
 
         local glowAnimateInFirst = glowAnimateIn:CreateAnimation("Alpha")
