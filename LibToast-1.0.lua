@@ -1,22 +1,9 @@
 -----------------------------------------------------------------------
--- Upvalued Lua API.
------------------------------------------------------------------------
-local _G = getfenv(0)
-
--- Functions
-local error = _G.error
-local pairs = _G.pairs
-
--- Libraries
-local table = _G.table
-
------------------------------------------------------------------------
 -- Library namespace.
 -----------------------------------------------------------------------
-local LibStub = _G.LibStub
 local MAJOR = "LibToast-1.0"
 
-_G.assert(LibStub, MAJOR .. " requires LibStub")
+assert(LibStub, MAJOR .. " requires LibStub")
 
 local MINOR = 15 -- Should be manually increased
 local LibToast, previousMinorVersion = LibStub:NewLibrary(MAJOR, MINOR)
@@ -25,6 +12,8 @@ if not LibToast then
     -- No upgrade needed
     return
 end
+
+local Toaster = _G.Toaster
 
 -----------------------------------------------------------------------
 -- Migrations.
@@ -72,7 +61,7 @@ local DEFAULT_TOAST_HEIGHT = 50
 local DEFAULT_GLOW_WIDTH = 252
 local DEFAULT_GLOW_HEIGHT = 56
 local DEFAULT_ICON_SIZE = 30
-local DEFAULT_OS_SPAWN_POINT = _G.IsMacClient() and "TOPRIGHT" or "BOTTOMRIGHT"
+local DEFAULT_OS_SPAWN_POINT = IsMacClient() and "TOPRIGHT" or "BOTTOMRIGHT"
 
 local DEFAULT_TOAST_BACKDROP = {
     bgFile = [[Interface\FriendsFrame\UI-Toast-Background]],
@@ -156,7 +145,7 @@ local SIBLING_OFFSET_Y = {
 local L_TOAST = "Toast"
 local L_TOAST_DESC = "Shows messages in a toast window."
 
-local LOCALE = _G.GetLocale()
+local LOCALE = GetLocale()
 
 if LOCALE == "esMX" or LOCALE == "esES" then
     L_TOAST = "Información emergente"
@@ -192,59 +181,59 @@ local QueuedAddOnName
 -- Settings functions.
 -----------------------------------------------------------------------
 local function ToastSpawnPoint()
-    return _G.Toaster and _G.Toaster:SpawnPoint() or DEFAULT_OS_SPAWN_POINT
+    return Toaster and Toaster:SpawnPoint() or DEFAULT_OS_SPAWN_POINT
 end
 
 local function ToastOffsetX()
-    return (_G.Toaster and _G.Toaster.SpawnOffsetX) and _G.Toaster:SpawnOffsetX() or nil
+    return (Toaster and Toaster.SpawnOffsetX) and Toaster:SpawnOffsetX() or nil
 end
 
 local function ToastOffsetY()
-    return (_G.Toaster and _G.Toaster.SpawnOffsetY) and _G.Toaster:SpawnOffsetY() or nil
+    return (Toaster and Toaster.SpawnOffsetY) and Toaster:SpawnOffsetY() or nil
 end
 
 local function ToastTitleColors(urgencyLevel)
-    if _G.Toaster then
-        return _G.Toaster:TitleColors(urgencyLevel)
+    if Toaster then
+        return Toaster:TitleColors(urgencyLevel)
     else
         return DEFAULT_TITLE_COLORS.r, DEFAULT_TITLE_COLORS.g, DEFAULT_TITLE_COLORS.b
     end
 end
 
 local function ToastTextColors(urgencyLevel)
-    if _G.Toaster then
-        return _G.Toaster:TextColors(urgencyLevel)
+    if Toaster then
+        return Toaster:TextColors(urgencyLevel)
     else
         return DEFAULT_TEXT_COLORS.r, DEFAULT_TEXT_COLORS.g, DEFAULT_TEXT_COLORS.b
     end
 end
 
 local function ToastBackgroundColors(urgencyLevel)
-    if _G.Toaster then
-        return _G.Toaster:BackgroundColors(urgencyLevel)
+    if Toaster then
+        return Toaster:BackgroundColors(urgencyLevel)
     else
         return DEFAULT_BACKGROUND_COLORS.r, DEFAULT_BACKGROUND_COLORS.g, DEFAULT_BACKGROUND_COLORS.b
     end
 end
 
 local function ToastDuration(addonName)
-    return _G.Toaster and _G.Toaster:Duration(addonName) or DEFAULT_FADE_HOLD_TIME
+    return Toaster and Toaster:Duration(addonName) or DEFAULT_FADE_HOLD_TIME
 end
 
 local function ToastOpacity(addonName)
-    return _G.Toaster and _G.Toaster:Opacity(addonName) or 0.75
+    return Toaster and Toaster:Opacity(addonName) or 0.75
 end
 
 local function ToastHasFloatingIcon(addonName)
-    return _G.Toaster and _G.Toaster:FloatingIcon(addonName)
+    return Toaster and Toaster:FloatingIcon(addonName)
 end
 
 local function ToastsAreSuppressed(addonName)
-    return _G.Toaster and (_G.Toaster:HideToasts() or _G.Toaster:HideToastsFromSource(addonName))
+    return Toaster and (Toaster:HideToasts() or Toaster:HideToastsFromSource(addonName))
 end
 
 local function ToastsAreMuted(addonName)
-    return _G.Toaster and (_G.Toaster:MuteToasts() or _G.Toaster:MuteToastsFromSource(addonName))
+    return Toaster and (Toaster:MuteToasts() or Toaster:MuteToastsFromSource(addonName))
 end
 
 -----------------------------------------------------------------------
@@ -260,10 +249,10 @@ local function GetEffectiveSpawnPoint(frame)
         return DEFAULT_OS_SPAWN_POINT
     end
 
-    local horizontalName = (x > _G.UIParent:GetWidth() * 2 / 3) and "RIGHT"
-        or (x < _G.UIParent:GetWidth() / 3) and "LEFT"
+    local horizontalName = (x > UIParent:GetWidth() * 2 / 3) and "RIGHT"
+        or (x < UIParent:GetWidth() / 3) and "LEFT"
         or ""
-    local verticalName = (y > _G.UIParent:GetHeight() / 2) and "TOP" or "BOTTOM"
+    local verticalName = (y > UIParent:GetHeight() / 2) and "TOP" or "BOTTOM"
     return verticalName .. horizontalName
 end
 
@@ -272,11 +261,11 @@ local function GetCallingObject()
 end
 
 local function StringValue(input)
-    local inputType = _G.type(input)
+    local inputType = type(input)
 
     if inputType == "function" then
         local output = input()
-        if _G.type(output) ~= "string" or output == "" then
+        if type(output) ~= "string" or output == "" then
             return
         end
 
@@ -358,7 +347,7 @@ local function _reclaimToast(toast)
         _positionToastIcon(indexedToast)
 
         if index == 1 then
-            indexedToast:SetPoint(spawnPoint, _G.UIParent, spawnPoint, offsetX, offsetY)
+            indexedToast:SetPoint(spawnPoint, UIParent, spawnPoint, offsetX, offsetY)
         else
             spawnPoint = POINT_TRANSLATION[GetEffectiveSpawnPoint(ActiveToasts[1])]
             indexedToast:SetPoint(
@@ -372,9 +361,9 @@ local function _reclaimToast(toast)
     end
 
     local toastData = table.remove(QueuedToasts, 1)
-    if toastData and toastData.addonName and _G.type(toastData.template) == "string" and toastData.template ~= "" then
+    if toastData and toastData.addonName and type(toastData.template) == "string" and toastData.template ~= "" then
         QueuedAddOnName = toastData.addonName
-        LibToast:Spawn(toastData.template, _G.unpack(toastData.payload))
+        LibToast:Spawn(toastData.template, unpack(toastData.payload))
     end
 end
 
@@ -412,7 +401,7 @@ local function _acquireToast(addonName)
     local toast = table.remove(ToastHeap)
 
     if not toast then
-        toast = _G.CreateFrame("Button", nil, _G.UIParent, _G.BackdropTemplateMixin and "BackdropTemplate")
+        toast = CreateFrame("Button", nil, UIParent, BackdropTemplateMixin and "BackdropTemplate")
         toast:SetFrameStrata("DIALOG")
         toast:Hide()
 
@@ -428,14 +417,14 @@ local function _acquireToast(addonName)
         title:SetPoint("RIGHT", toast, "RIGHT", -20, 10)
         toast.title = title
 
-        local focus = _G.CreateFrame("Frame", nil, toast)
+        local focus = CreateFrame("Frame", nil, toast)
         focus:SetAllPoints(toast)
         focus:SetScript("OnEnter", Focus_OnEnter)
         focus:SetScript("OnLeave", Focus_OnLeave)
         focus:SetScript("OnShow", Focus_OnLeave)
         focus.toast = toast
 
-        local dismissButton = _G.CreateFrame("Button", nil, toast)
+        local dismissButton = CreateFrame("Button", nil, toast)
         dismissButton:SetSize(18, 18)
         dismissButton:SetPoint("TOPRIGHT", toast, "TOPRIGHT", -4, -4)
         dismissButton:SetFrameStrata("DIALOG")
@@ -483,7 +472,7 @@ local function _acquireToast(addonName)
         toastAnimateOut.toast = toast
         toastWaitAndAnimateOut.animateOut = toastAnimateOut
 
-        local glowFrame = _G.CreateFrame("Frame", nil, toast)
+        local glowFrame = CreateFrame("Frame", nil, toast)
         glowFrame:SetAllPoints(toast)
         toast.glowFrame = glowFrame
 
@@ -518,8 +507,8 @@ local function _acquireToast(addonName)
     toast:SetBackdrop(DEFAULT_TOAST_BACKDROP)
     toast:SetBackdropBorderColor(1, 1, 1)
 
-    if _G.Toaster then
-        local iconSize = _G.Toaster:IconSize(addonName)
+    if Toaster then
+        local iconSize = Toaster:IconSize(addonName)
         toast.icon:SetSize(iconSize, iconSize)
     end
 
@@ -532,7 +521,7 @@ end
 function LibToast:Register(templateName, constructor, isUnique)
     local isLib = (self == LibToast)
 
-    if _G.type(templateName) ~= "string" or templateName == "" then
+    if type(templateName) ~= "string" or templateName == "" then
         error(
             METHOD_USAGE_FORMAT:format(
                 isLib and "Register" or "RegisterToast",
@@ -542,7 +531,7 @@ function LibToast:Register(templateName, constructor, isUnique)
         )
     end
 
-    if _G.type(constructor) ~= "function" then
+    if type(constructor) ~= "function" then
         error(METHOD_USAGE_FORMAT:format(isLib and "Register" or "RegisterToast", "constructor must be a function"), 2)
     end
 
@@ -553,7 +542,7 @@ end
 function LibToast:Spawn(templateName, ...)
     local isLib = (self == LibToast)
 
-    if not templateName or (not IsInternalCall and (_G.type(templateName) ~= "string" or templateName == "")) then
+    if not templateName or (not IsInternalCall and (type(templateName) ~= "string" or templateName == "")) then
         error(
             METHOD_USAGE_FORMAT:format(isLib and "Spawn" or "SpawnToast", "templateName must be a non-empty string"),
             2
@@ -575,9 +564,9 @@ function LibToast:Spawn(templateName, ...)
         addonName = QueuedAddOnName
         QueuedAddOnName = nil
     elseif isLib then
-        addonName = _G.select(3, ([[\]]):split(_G.debugstack(2)))
+        addonName = select(3, ([[\]]):split(debugstack(2)))
     else
-        addonName = LibToast.addon_names[self] or _G.UNKNOWN
+        addonName = LibToast.addon_names[self] or UNKNOWN
     end
 
     if ToastsAreSuppressed(addonName) then
@@ -681,7 +670,7 @@ function LibToast:Spawn(templateName, ...)
             SIBLING_OFFSET_Y[spawnPoint]
         )
     else
-        CurrentToast:SetPoint(spawnPoint, _G.UIParent, spawnPoint, offsetX, offsetY)
+        CurrentToast:SetPoint(spawnPoint, UIParent, spawnPoint, offsetX, offsetY)
     end
 
     ActiveToasts[#ActiveToasts + 1] = CurrentToast
@@ -689,7 +678,7 @@ function LibToast:Spawn(templateName, ...)
     _positionToastIcon(CurrentToast)
 
     if CurrentToast.sound_file and not ToastsAreMuted(addonName) then
-        _G.PlaySoundFile(CurrentToast.sound_file)
+        PlaySoundFile(CurrentToast.sound_file)
     end
 
     CurrentToast:Show()
@@ -710,8 +699,8 @@ end
 
 function LibToast:DefineSink(displayName, texturePath)
     local isLib = (self == LibToast)
-    local texturePathType = _G.type(texturePath)
-    local displayNameType = _G.type(displayName)
+    local texturePathType = type(texturePath)
+    local displayNameType = type(displayName)
 
     if texturePath and (texturePathType ~= "function" and (texturePathType ~= "string" or texturePath == "")) then
         error(
@@ -732,8 +721,8 @@ function LibToast:DefineSink(displayName, texturePath)
         )
     end
 
-    local addonName = _G.select(3, ([[\]]):split(_G.debugstack(2)))
-    LibToast.addon_names[self] = addonName or _G.UNKNOWN
+    local addonName = select(3, ([[\]]):split(debugstack(2)))
+    LibToast.addon_names[self] = addonName or UNKNOWN
     LibToast.sink_icons[self] = texturePath
     LibToast.sink_titles[self] = displayName
 
@@ -831,7 +820,7 @@ do
             button_count = button_count + 1
 
             button =
-                _G.CreateFrame("Button", BUTTON_NAME_FORMAT:format(button_count), toast, "UIMenuButtonStretchTemplate")
+                CreateFrame("Button", BUTTON_NAME_FORMAT:format(button_count), toast, "UIMenuButtonStretchTemplate")
             button:SetHeight(TOAST_BUTTON_HEIGHT)
             button:SetFrameStrata("DIALOG")
             button:SetScript("OnClick", _buttonCallbackHandler)
@@ -922,7 +911,7 @@ function ToastProxy:SetPayload(...)
 end
 
 function ToastProxy:Payload()
-    return _G.unpack(CurrentToast.payload)
+    return unpack(CurrentToast.payload)
 end
 
 function ToastProxy:MakePersistent()
