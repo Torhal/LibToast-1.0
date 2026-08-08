@@ -393,7 +393,7 @@ local function AnimationDismissToast(animation)
     _reclaimToast(animation.toast)
 end
 
-local function Focus_OnEnter(frame, motion)
+local function Focus_OnEnter(frame)
     local toast = frame.toast
     toast.dismiss_button:Show()
 
@@ -403,7 +403,7 @@ local function Focus_OnEnter(frame, motion)
     end
 end
 
-local function Focus_OnLeave(frame, motion)
+local function Focus_OnLeave(frame)
     local toast = frame.toast
 
     if not toast.dismiss_button:IsMouseOver() then
