@@ -261,6 +261,12 @@ end
 ---- Helper Functions
 --------------------------------------------------------------------------------
 
+local function GetAddOnNameFromDebugStack()
+    local stackString = debugstack(2)
+
+    return select(3, ([[\]]):split(stackString)) or select(3, ([[/]]):split(stackString))
+end
+
 local function AnimationHideParent(animation)
     animation:GetParent():Hide()
 end
@@ -589,7 +595,7 @@ function LibToast:Spawn(templateName, ...)
         addonName = QueuedAddOnName
         QueuedAddOnName = nil
     elseif isLib then
-        addonName = select(3, ([[\]]):split(debugstack(2)))
+        addonName = GetAddOnNameFromDebugStack()
     else
         addonName = LibToast.addon_names[self] or UNKNOWN
     end
@@ -750,7 +756,8 @@ function LibToast:DefineSink(displayName, texturePath)
         )
     end
 
-    local addonName = select(3, ([[\]]):split(debugstack(2)))
+    local addonName = GetAddOnNameFromDebugStack()
+
     LibToast.addon_names[self] = addonName or UNKNOWN
     LibToast.sink_icons[self] = texturePath
     LibToast.sink_titles[self] = displayName
