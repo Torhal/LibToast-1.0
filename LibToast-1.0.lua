@@ -836,7 +836,7 @@ do
 
             local fontString = button:GetFontString()
             fontString:SetJustifyH("CENTER")
-            fontString:SetJustifyV("CENTER")
+            fontString:SetJustifyV("MIDDLE")
         end
 
         button:SetParent(toast)
