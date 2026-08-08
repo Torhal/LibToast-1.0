@@ -1,6 +1,7 @@
------------------------------------------------------------------------
--- Library namespace.
------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+---- Library Namespace
+--------------------------------------------------------------------------------
+
 local MAJOR = "LibToast-1.0"
 
 assert(LibStub, MAJOR .. " requires LibStub")
@@ -13,11 +14,13 @@ if not LibToast then
     return
 end
 
+-- This is the control AddOn.
 local Toaster = _G.Toaster
 
------------------------------------------------------------------------
--- Migrations.
------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+---- Migrations
+--------------------------------------------------------------------------------
+
 LibToast.active_toasts = LibToast.active_toasts or {}
 LibToast.queued_toasts = LibToast.queued_toasts or {}
 LibToast.templates = LibToast.templates or {}
@@ -32,16 +35,19 @@ LibToast.sink_icons = LibToast.sink_icons or {}
 LibToast.sink_template = LibToast.sink_template or {} -- Cheating here, since users can only use strings.
 LibToast.sink_titles = LibToast.sink_titles or {}
 
------------------------------------------------------------------------
--- Variables.
------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+---- Variables
+--------------------------------------------------------------------------------
+
 local CurrentToast
 local IsInternalCall
 local CallingObject
+local QueuedAddOnName
 
------------------------------------------------------------------------
--- Constants.
------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+---- Constants
+--------------------------------------------------------------------------------
+
 local ActiveToasts = LibToast.active_toasts
 local QueuedToasts = LibToast.queued_toasts
 local ToastHeap = LibToast.toast_heap
@@ -172,14 +178,10 @@ elseif LOCALE == "zhTW" then
     L_TOAST_DESC = "在彈出視窗顯示訊息。"
 end
 
------------------------------------------------------------------------
--- Variables.
------------------------------------------------------------------------
-local QueuedAddOnName
+--------------------------------------------------------------------------------
+---- Toaster/Default Value Functions
+--------------------------------------------------------------------------------
 
------------------------------------------------------------------------
--- Settings functions.
------------------------------------------------------------------------
 local function ToastSpawnPoint()
     return Toaster and Toaster:SpawnPoint() or DEFAULT_OS_SPAWN_POINT
 end
@@ -236,9 +238,10 @@ local function ToastsAreMuted(addonName)
     return Toaster and (Toaster:MuteToasts() or Toaster:MuteToastsFromSource(addonName))
 end
 
------------------------------------------------------------------------
--- Helper functions.
------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+---- Helper Functions
+--------------------------------------------------------------------------------
+
 local function AnimationHideParent(animation)
     animation:GetParent():Hide()
 end
@@ -515,9 +518,10 @@ local function _acquireToast(addonName)
     return toast
 end
 
------------------------------------------------------------------------
--- Library methods.
------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+---- Library Methods
+--------------------------------------------------------------------------------
+
 function LibToast:Register(templateName, constructor, isUnique)
     local isLib = (self == LibToast)
 
@@ -594,17 +598,19 @@ function LibToast:Spawn(templateName, ...)
     CurrentToast.templateName = templateName
     CurrentToast.addonName = addonName
 
-    -----------------------------------------------------------------------
-    -- Reset defaults.
-    -----------------------------------------------------------------------
+    --------------------------------------------------------------------------------
+    ---- Reset Defaults
+    --------------------------------------------------------------------------------
+
     CurrentToast.title:SetText(nil)
     CurrentToast.text:SetText(nil)
     CurrentToast.icon:SetTexture(nil)
     CurrentToast.icon:SetTexCoord(0, 1, 0, 1)
 
-    -----------------------------------------------------------------------
-    -- Run constructor.
-    -----------------------------------------------------------------------
+    --------------------------------------------------------------------------------
+    ---- Run Constructor
+    --------------------------------------------------------------------------------
+
     CallingObject = self
     LibToast.templates[templateName](ToastProxy, ...)
 
@@ -613,9 +619,10 @@ function LibToast:Spawn(templateName, ...)
         return
     end
 
-    -----------------------------------------------------------------------
-    -- Finalize layout.
-    -----------------------------------------------------------------------
+    --------------------------------------------------------------------------------
+    ---- Finalize Layout
+    --------------------------------------------------------------------------------
+
     local urgency = CurrentToast.urgency_level
     CurrentToast.title:SetTextColor(ToastTitleColors(urgency))
     CurrentToast.text:SetTextColor(ToastTextColors(urgency))
@@ -653,9 +660,10 @@ function LibToast:Spawn(templateName, ...)
         CurrentToast.text:GetStringHeight() + CurrentToast.title:GetStringHeight() + buttonHeight + 25
     )
 
-    -----------------------------------------------------------------------
-    -- Anchor and spawn.
-    -----------------------------------------------------------------------
+    --------------------------------------------------------------------------------
+    ---- Anchor and Spawn
+    --------------------------------------------------------------------------------
+
     local spawnPoint = ToastSpawnPoint()
     local offsetX = ToastOffsetX() or OFFSET_X[spawnPoint]
     local offsetY = ToastOffsetY() or OFFSET_Y[spawnPoint]
@@ -751,9 +759,10 @@ function LibToast:DefineSink(displayName, texturePath)
     end
 end
 
------------------------------------------------------------------------
--- Proxy methods.
------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+---- Proxy Methods
+--------------------------------------------------------------------------------
+
 local TOAST_URGENCIES = {
     very_low = true,
     moderate = true,
@@ -922,9 +931,10 @@ function ToastProxy:SetSoundFile(filePath)
     CurrentToast.sound_file = filePath
 end
 
------------------------------------------------------------------------
--- Embed handling.
------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+---- Embed Handling
+--------------------------------------------------------------------------------
+
 LibToast.embeds = LibToast.embeds or {}
 
 local mixins = {
