@@ -22,8 +22,9 @@ local MINOR = 15 -- Should be manually increased
 local LibToast, previousMinorVersion = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not LibToast then
+    -- No upgrade needed
     return
-end -- No upgrade needed
+end
 
 -----------------------------------------------------------------------
 -- Migrations.
@@ -102,7 +103,7 @@ local DEFAULT_TITLE_COLORS = {
 local DEFAULT_TEXT_COLORS = {
     r = 0.486,
     g = 0.518,
-    b = 0.541
+    b = 0.541,
 }
 
 local TOAST_BUTTONS = {
@@ -161,7 +162,7 @@ if LOCALE == "esMX" or LOCALE == "esES" then
     L_TOAST = "Información emergente"
     L_TOAST_DESC = "Muestra mensajes de información en una ventana emergente"
 elseif LOCALE == "frFR" then
-    L_TOAST_DESC = "Montrer les messages dans une fenêtre \"toast\"."
+    L_TOAST_DESC = 'Montrer les messages dans une fenêtre "toast".'
 elseif LOCALE == "deDE" then
     L_TOAST_DESC = "Zeigt Nachrichten in einem Toast-Fenster"
 elseif LOCALE == "itIT" then
@@ -259,7 +260,9 @@ local function GetEffectiveSpawnPoint(frame)
         return DEFAULT_OS_SPAWN_POINT
     end
 
-    local horizontalName = (x > _G.UIParent:GetWidth() * 2 / 3) and "RIGHT" or (x < _G.UIParent:GetWidth() / 3) and "LEFT" or ""
+    local horizontalName = (x > _G.UIParent:GetWidth() * 2 / 3) and "RIGHT"
+        or (x < _G.UIParent:GetWidth() / 3) and "LEFT"
+        or ""
     local verticalName = (y > _G.UIParent:GetHeight() / 2) and "TOP" or "BOTTOM"
     return verticalName .. horizontalName
 end
@@ -358,7 +361,13 @@ local function _reclaimToast(toast)
             indexedToast:SetPoint(spawnPoint, _G.UIParent, spawnPoint, offsetX, offsetY)
         else
             spawnPoint = POINT_TRANSLATION[GetEffectiveSpawnPoint(ActiveToasts[1])]
-            indexedToast:SetPoint(spawnPoint, ActiveToasts[index - 1], SIBLING_ANCHORS[spawnPoint], 0, SIBLING_OFFSET_Y[spawnPoint])
+            indexedToast:SetPoint(
+                spawnPoint,
+                ActiveToasts[index - 1],
+                SIBLING_ANCHORS[spawnPoint],
+                0,
+                SIBLING_OFFSET_Y[spawnPoint]
+            )
         end
     end
 
@@ -524,7 +533,13 @@ function LibToast:Register(templateName, constructor, isUnique)
     local isLib = (self == LibToast)
 
     if _G.type(templateName) ~= "string" or templateName == "" then
-        error(METHOD_USAGE_FORMAT:format(isLib and "Register" or "RegisterToast", "templateName must be a non-empty string"), 2)
+        error(
+            METHOD_USAGE_FORMAT:format(
+                isLib and "Register" or "RegisterToast",
+                "templateName must be a non-empty string"
+            ),
+            2
+        )
     end
 
     if _G.type(constructor) ~= "function" then
@@ -539,11 +554,20 @@ function LibToast:Spawn(templateName, ...)
     local isLib = (self == LibToast)
 
     if not templateName or (not IsInternalCall and (_G.type(templateName) ~= "string" or templateName == "")) then
-        error(METHOD_USAGE_FORMAT:format(isLib and "Spawn" or "SpawnToast", "templateName must be a non-empty string"), 2)
+        error(
+            METHOD_USAGE_FORMAT:format(isLib and "Spawn" or "SpawnToast", "templateName must be a non-empty string"),
+            2
+        )
     end
 
     if not LibToast.templates[templateName] then
-        error(METHOD_USAGE_FORMAT:format(isLib and "Spawn" or "SpawnToast", ("\"%s\" does not match a registered template"):format(templateName)), 2)
+        error(
+            METHOD_USAGE_FORMAT:format(
+                isLib and "Spawn" or "SpawnToast",
+                ('"%s" does not match a registered template'):format(templateName)
+            ),
+            2
+        )
     end
 
     local addonName
@@ -572,7 +596,7 @@ function LibToast:Spawn(templateName, ...)
         table.insert(QueuedToasts, {
             addonName = addonName,
             template = templateName,
-            payload = { ... }
+            payload = { ... },
         })
         return
     end
@@ -633,8 +657,12 @@ function LibToast:Spawn(templateName, ...)
     else
         CurrentToast.text:Hide()
     end
-    local buttonHeight = (CurrentToast.primary_button or CurrentToast.secondary_button or CurrentToast.tertiary_button) and TOAST_BUTTON_HEIGHT or 0
-    CurrentToast:SetHeight(CurrentToast.text:GetStringHeight() + CurrentToast.title:GetStringHeight() + buttonHeight + 25)
+    local buttonHeight = (CurrentToast.primary_button or CurrentToast.secondary_button or CurrentToast.tertiary_button)
+            and TOAST_BUTTON_HEIGHT
+        or 0
+    CurrentToast:SetHeight(
+        CurrentToast.text:GetStringHeight() + CurrentToast.title:GetStringHeight() + buttonHeight + 25
+    )
 
     -----------------------------------------------------------------------
     -- Anchor and spawn.
@@ -645,7 +673,13 @@ function LibToast:Spawn(templateName, ...)
 
     if #ActiveToasts > 0 then
         spawnPoint = POINT_TRANSLATION[GetEffectiveSpawnPoint(ActiveToasts[1])]
-        CurrentToast:SetPoint(spawnPoint, ActiveToasts[#ActiveToasts], SIBLING_ANCHORS[spawnPoint], 0, SIBLING_OFFSET_Y[spawnPoint])
+        CurrentToast:SetPoint(
+            spawnPoint,
+            ActiveToasts[#ActiveToasts],
+            SIBLING_ANCHORS[spawnPoint],
+            0,
+            SIBLING_OFFSET_Y[spawnPoint]
+        )
     else
         CurrentToast:SetPoint(spawnPoint, _G.UIParent, spawnPoint, offsetX, offsetY)
     end
@@ -680,10 +714,22 @@ function LibToast:DefineSink(displayName, texturePath)
     local displayNameType = _G.type(displayName)
 
     if texturePath and (texturePathType ~= "function" and (texturePathType ~= "string" or texturePath == "")) then
-        error(METHOD_USAGE_FORMAT:format(isLib and "DefineSink" or "DefineSinkToast", "texturePath must be a non-empty string, a function that returns one, or nil"), 2)
+        error(
+            METHOD_USAGE_FORMAT:format(
+                isLib and "DefineSink" or "DefineSinkToast",
+                "texturePath must be a non-empty string, a function that returns one, or nil"
+            ),
+            2
+        )
     end
     if displayName and (displayNameType ~= "function" and (displayNameType ~= "string" or displayName == "")) then
-        error(METHOD_USAGE_FORMAT:format(isLib and "DefineSink" or "DefineSinkToast", "displayName must be a non-empty string, a function that returns one, or nil"), 2)
+        error(
+            METHOD_USAGE_FORMAT:format(
+                isLib and "DefineSink" or "DefineSinkToast",
+                "displayName must be a non-empty string, a function that returns one, or nil"
+            ),
+            2
+        )
     end
 
     local addonName = _G.select(3, ([[\]]):split(_G.debugstack(2)))
@@ -731,7 +777,7 @@ function ToastProxy:SetUrgencyLevel(urgencyLevel)
     urgencyLevel = urgencyLevel:gsub(" ", "_"):lower()
 
     if not TOAST_URGENCIES[urgencyLevel] then
-        error(("\"%s\" is not a valid toast urgency level"):format(urgencyLevel), 2)
+        error(('"%s" is not a valid toast urgency level'):format(urgencyLevel), 2)
     end
     CurrentToast.urgency_level = urgencyLevel
 end
@@ -784,7 +830,8 @@ do
         if not button then
             button_count = button_count + 1
 
-            button = _G.CreateFrame("Button", BUTTON_NAME_FORMAT:format(button_count), toast, "UIMenuButtonStretchTemplate")
+            button =
+                _G.CreateFrame("Button", BUTTON_NAME_FORMAT:format(button_count), toast, "UIMenuButtonStretchTemplate")
             button:SetHeight(TOAST_BUTTON_HEIGHT)
             button:SetFrameStrata("DIALOG")
             button:SetScript("OnClick", _buttonCallbackHandler)
@@ -860,8 +907,13 @@ function ToastProxy:SetTertiaryCallback(label, handler)
     local button = _initializedToastButton("tertiary_button", label, handler)
     button:SetPoint("LEFT", CurrentToast.secondary_button, "RIGHT", 0, 0)
 
-    if button:GetWidth() + CurrentToast.primary_button:GetWidth() + CurrentToast.secondary_button:GetWidth() > CurrentToast:GetWidth() then
-        CurrentToast:SetWidth(button:GetWidth() + CurrentToast.primary_button:GetWidth() + CurrentToast.secondary_button:GetWidth() + 5)
+    if
+        button:GetWidth() + CurrentToast.primary_button:GetWidth() + CurrentToast.secondary_button:GetWidth()
+        > CurrentToast:GetWidth()
+    then
+        CurrentToast:SetWidth(
+            button:GetWidth() + CurrentToast.primary_button:GetWidth() + CurrentToast.secondary_button:GetWidth() + 5
+        )
     end
 end
 
