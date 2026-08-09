@@ -7,6 +7,8 @@ local MAJOR = "LibToast-1.0"
 assert(LibStub, MAJOR .. " requires LibStub")
 
 local MINOR = 16 -- Should be manually increased
+
+---@class LibToast-1.0
 local LibToast, previousMinorVersion = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not LibToast then
@@ -15,15 +17,57 @@ if not LibToast then
 end
 
 --------------------------------------------------------------------------------
+---- Additional Types
+--------------------------------------------------------------------------------
+
+---@alias LibToast-1.0.UrgencyLevel "emergency" | "high" | "moderate" | "normal" | "very_low"
+
+---@class LibToast-1.0.Toast: Frame & BackdropTemplate
+---@field addonName string
+---@field animateIn AnimationGroup
+---@field dismiss_button Button
+---@field glowFrame Frame
+---@field icon Texture
+---@field is_persistent boolean!
+---@field payload table!
+---@field primary_button LibToast-1.0.ToastButton
+---@field secondary_button LibToast-1.0.ToastButton
+---@field sound_file (number | string)!
+---@field templateName string!
+---@field text FontString
+---@field title FontString
+---@field urgency_level LibToast-1.0.UrgencyLevel
+---@field waitAndAnimateOut AnimationGroup
+
+---@class LibToast-1.0.ToastData
+---@field addonName string
+---@field template string
+---@field payload table
+
+---@class LibToast-1.0.ToastButton: Button & UIMenuButtonStretchTemplate
+---@field handler function
+---@field id string
+---@field toast LibToast-1.0.Toast
+
+--------------------------------------------------------------------------------
 ---- Migrations
 --------------------------------------------------------------------------------
 
+---@type LibToast-1.0.Toast[]
 LibToast.active_toasts = LibToast.active_toasts or {}
+
+---@type LibToast-1.0.ToastData[]
 LibToast.queued_toasts = LibToast.queued_toasts or {}
+
 LibToast.templates = LibToast.templates or {}
+
+---@type table<string, boolean>
 LibToast.unique_templates = LibToast.unique_templates or {}
 
+---@type LibToast-1.0.ToastButton[]
 LibToast.button_heap = LibToast.button_heap or {}
+
+---@type LibToast-1.0.Toast[]
 LibToast.toast_heap = LibToast.toast_heap or {}
 
 LibToast.addon_names = LibToast.addon_names or {}
@@ -36,10 +80,10 @@ LibToast.sink_titles = LibToast.sink_titles or {}
 ---- Variables
 --------------------------------------------------------------------------------
 
-local CurrentToast
-local IsInternalCall
-local CallingObject
-local QueuedAddOnName
+local CurrentToast ---@type LibToast-1.0.Toast
+local IsInternalCall ---@type boolean?
+local CallingObject ---@type table
+local QueuedAddOnName ---@type string?
 
 --------------------------------------------------------------------------------
 ---- Constants
@@ -50,6 +94,7 @@ local QueuedToasts = LibToast.queued_toasts
 local ToastHeap = LibToast.toast_heap
 local ButtonHeap = LibToast.button_heap
 
+---@class LibToast-1.0.ToastProxy
 local ToastProxy = {}
 
 local METHOD_USAGE_FORMAT = MAJOR .. ":%s() - %s."
@@ -184,24 +229,29 @@ local function GetToaster()
     return _G.Toaster
 end
 
+---@return FramePoint
 local function ToastSpawnPoint()
-    local Toaster = _G.Toaster
+    local Toaster = GetToaster()
 
     return Toaster and Toaster:SpawnPoint() or DEFAULT_OS_SPAWN_POINT
 end
 
+---@return number
 local function ToastOffsetX()
-    local Toaster = _G.Toaster
+    local Toaster = GetToaster()
 
     return (Toaster and Toaster.SpawnOffsetX) and Toaster:SpawnOffsetX() or nil
 end
 
+---@return number
 local function ToastOffsetY()
-    local Toaster = _G.Toaster
+    local Toaster = GetToaster()
 
     return (Toaster and Toaster.SpawnOffsetY) and Toaster:SpawnOffsetY() or nil
 end
 
+---@param urgencyLevel LibToast-1.0.UrgencyLevel
+---@return (number r, number g, number b)
 local function ToastTitleColors(urgencyLevel)
     local Toaster = GetToaster()
 
@@ -212,6 +262,8 @@ local function ToastTitleColors(urgencyLevel)
     end
 end
 
+---@param urgencyLevel LibToast-1.0.UrgencyLevel
+---@return (number r, number g, number b)
 local function ToastTextColors(urgencyLevel)
     local Toaster = GetToaster()
 
@@ -222,6 +274,8 @@ local function ToastTextColors(urgencyLevel)
     end
 end
 
+---@param urgencyLevel LibToast-1.0.UrgencyLevel
+---@return (number r, number g, number b)
 local function ToastBackgroundColors(urgencyLevel)
     local Toaster = GetToaster()
 
@@ -232,30 +286,40 @@ local function ToastBackgroundColors(urgencyLevel)
     end
 end
 
+---@param addonName string
+---@return number
 local function ToastDuration(addonName)
     local Toaster = GetToaster()
 
     return Toaster and Toaster:Duration(addonName) or DEFAULT_FADE_HOLD_TIME
 end
 
+---@param addonName string
+---@return number
 local function ToastOpacity(addonName)
     local Toaster = GetToaster()
 
     return Toaster and Toaster:Opacity(addonName) or 0.75
 end
 
+---@param addonName string
+---@return boolean
 local function ToastHasFloatingIcon(addonName)
     local Toaster = GetToaster()
 
     return Toaster and Toaster:FloatingIcon(addonName)
 end
 
+---@param addonName string
+---@return boolean
 local function ToastsAreSuppressed(addonName)
     local Toaster = GetToaster()
 
     return Toaster and (Toaster:HideToasts() or Toaster:HideToastsFromSource(addonName))
 end
 
+---@param addonName string
+---@return boolean
 local function ToastsAreMuted(addonName)
     local Toaster = GetToaster()
 
@@ -266,18 +330,23 @@ end
 ---- Helper Functions
 --------------------------------------------------------------------------------
 
+---@return string
 local function GetAddOnNameFromDebugStack()
     local stackString = debugstack(2)
 
     return select(3, ([[\]]):split(stackString)) or select(3, ([[/]]):split(stackString))
 end
 
+---@param animation AnimationGroup
 local function AnimationGroupHideParent(animation)
     animation:GetParent():Hide()
 end
 
+---@param frame Frame
+---@return FramePoint
 local function GetEffectiveSpawnPoint(frame)
     local x, y = frame:GetCenter()
+
     if not x or not y then
         return DEFAULT_OS_SPAWN_POINT
     end
@@ -286,6 +355,7 @@ local function GetEffectiveSpawnPoint(frame)
         or (x < UIParent:GetWidth() / 3) and "LEFT"
         or ""
     local verticalName = (y > UIParent:GetHeight() / 2) and "TOP" or "BOTTOM"
+
     return verticalName .. horizontalName
 end
 
@@ -293,30 +363,40 @@ local function GetCallingObject()
     return CallingObject
 end
 
+---@param input function | string
+---@return string
 local function StringValue(input)
     local inputType = type(input)
 
     if inputType == "function" then
-        local output = input()
+        local output = input() --[[@as string]]
+
         if type(output) ~= "string" or output == "" then
-            return
+            return ""
         end
 
         return output
     elseif inputType == "string" then
         return input
     end
+
+    return ""
 end
 
 if not LibToast.templates[LibToast.sink_template] then
-    LibToast.templates[LibToast.sink_template] = function(toast, text, _, _, _, _, _, _, _, _, iconTexture)
-        local callingObject = GetCallingObject()
-        toast:SetTitle(StringValue(LibToast.sink_titles[callingObject]))
-        toast:SetText(text)
-        toast:SetIconTexture(iconTexture or StringValue(LibToast.sink_icons[callingObject]))
-    end
+    LibToast.templates[LibToast.sink_template] =
+        ---@param toast LibToast-1.0.ToastProxy
+        ---@param text string
+        ---@param iconTexture string|nil
+        function(toast, text, _, _, _, _, _, _, _, _, iconTexture)
+            local callingObject = GetCallingObject()
+            toast:SetTitle(StringValue(LibToast.sink_titles[callingObject]))
+            toast:SetText(text)
+            toast:SetIconTexture(iconTexture or StringValue(LibToast.sink_icons[callingObject]))
+        end
 end
 
+---@param toast LibToast-1.0.Toast
 local function _positionToastIcon(toast)
     toast.icon:ClearAllPoints()
 
@@ -333,6 +413,7 @@ local function _positionToastIcon(toast)
     end
 end
 
+---@param button LibToast-1.0.ToastButton
 local function _reclaimButton(button)
     button:Hide()
     button:ClearAllPoints()
@@ -341,6 +422,7 @@ local function _reclaimButton(button)
     table.insert(ButtonHeap, button)
 end
 
+---@param toast LibToast-1.0.Toast
 local function _reclaimToast(toast)
     for buttonName in pairs(TOAST_BUTTONS) do
         local button = toast[buttonName]
@@ -350,6 +432,7 @@ local function _reclaimToast(toast)
             _reclaimButton(button)
         end
     end
+
     toast.is_persistent = nil
     toast.templateName = nil
     toast.payload = nil
@@ -400,10 +483,12 @@ local function _reclaimToast(toast)
     end
 end
 
+---@param animation Animation & Alpha & { toast: LibToast-1.0.Toast}
 local function AnimationDismissToast(animation)
     _reclaimToast(animation.toast)
 end
 
+---@param frame Frame & { toast: LibToast-1.0.Toast}
 local function Focus_OnEnter(frame)
     local toast = frame.toast
     toast.dismiss_button:Show()
@@ -414,6 +499,7 @@ local function Focus_OnEnter(frame)
     end
 end
 
+---@param frame Frame
 local function Focus_OnLeave(frame)
     local toast = frame.toast
 
@@ -426,15 +512,20 @@ local function Focus_OnLeave(frame)
     end
 end
 
+---@param frame Frame
+---@param button MouseButton
+---@param down boolean
 local function _dismissToast(frame, button, down)
-    _reclaimToast(frame:GetParent())
+    _reclaimToast(frame:GetParent() --[[@as LibToast-1.0.Toast]])
 end
 
+---@param addonName string
+---@return LibToast-1.0.Toast
 local function _acquireToast(addonName)
     local toast = table.remove(ToastHeap)
 
     if not toast then
-        toast = CreateFrame("Button", nil, UIParent, BackdropTemplateMixin and "BackdropTemplate")
+        toast = CreateFrame("Button", nil, UIParent, BackdropTemplateMixin and "BackdropTemplate") --[[@as LibToast-1.0.Toast]]
         toast:SetFrameStrata("DIALOG")
         toast:Hide()
 
@@ -495,7 +586,7 @@ local function _acquireToast(addonName)
         local toastWaitAndAnimateOut = toast:CreateAnimationGroup()
         toast.waitAndAnimateOut = toastWaitAndAnimateOut
 
-        local toastAnimateOut = toastWaitAndAnimateOut:CreateAnimation("Alpha")
+        local toastAnimateOut = toastWaitAndAnimateOut:CreateAnimation("Alpha") --[[@as Animation & Alpha]]
         toastAnimateOut:SetStartDelay(DEFAULT_FADE_HOLD_TIME)
         toastAnimateOut:SetFromAlpha(1)
         toastAnimateOut:SetToAlpha(0)
@@ -540,7 +631,7 @@ local function _acquireToast(addonName)
     toast:SetBackdrop(DEFAULT_TOAST_BACKDROP)
     toast:SetBackdropBorderColor(1, 1, 1)
 
-    local Toaster = _G.Toaster
+    local Toaster = GetToaster()
 
     if Toaster then
         local iconSize = Toaster:IconSize(addonName)
@@ -554,6 +645,9 @@ end
 ---- Library Methods
 --------------------------------------------------------------------------------
 
+---@param templateName string
+---@param constructor fun(toast: LibToast-1.0.ToastProxy, ...: any)
+---@param isUnique? boolean
 function LibToast:Register(templateName, constructor, isUnique)
     local isLib = (self == LibToast)
 
@@ -575,6 +669,7 @@ function LibToast:Register(templateName, constructor, isUnique)
     LibToast.unique_templates[templateName] = isUnique or nil
 end
 
+---@param templateName string
 function LibToast:Spawn(templateName, ...)
     local isLib = (self == LibToast)
 
@@ -595,7 +690,8 @@ function LibToast:Spawn(templateName, ...)
         )
     end
 
-    local addonName
+    local addonName ---@type string
+
     if QueuedAddOnName then
         addonName = QueuedAddOnName
         QueuedAddOnName = nil
@@ -685,9 +781,11 @@ function LibToast:Spawn(templateName, ...)
     else
         CurrentToast.text:Hide()
     end
+
     local buttonHeight = (CurrentToast.primary_button or CurrentToast.secondary_button or CurrentToast.tertiary_button)
             and TOAST_BUTTON_HEIGHT
         or 0
+
     CurrentToast:SetHeight(
         CurrentToast.text:GetStringHeight() + CurrentToast.title:GetStringHeight() + buttonHeight + 25
     )
@@ -737,6 +835,8 @@ function LibToast:Spawn(templateName, ...)
     end
 end
 
+---@param displayName string
+---@param texturePath function | string
 function LibToast:DefineSink(displayName, texturePath)
     local isLib = (self == LibToast)
     local texturePathType = type(texturePath)
@@ -751,6 +851,7 @@ function LibToast:DefineSink(displayName, texturePath)
             2
         )
     end
+
     if displayName and (displayNameType ~= "function" and (displayNameType ~= "string" or displayName == "")) then
         error(
             METHOD_USAGE_FORMAT:format(
@@ -769,14 +870,19 @@ function LibToast:DefineSink(displayName, texturePath)
 
     if not LibToast.registered_sink then
         local LibSink = LibStub("LibSink-2.0")
+
         if not LibSink then
             return
         end
 
+        ---@param caller table
+        ---@param text string|table
+        ---@param ... any
         LibSink:RegisterSink("LibToast-1.0", L_TOAST, L_TOAST_DESC, function(caller, text, ...)
             IsInternalCall = true
 
             local func
+
             if caller.SpawnToast then
                 func = caller.SpawnToast
             else
@@ -784,7 +890,9 @@ function LibToast:DefineSink(displayName, texturePath)
                 func = LibToast.Spawn
             end
 
-            func(caller, LibToast.sink_template, text, ...)
+            -- Users are confined to strings for templateName, but the library cheats and uses a table.
+            func(caller, LibToast.sink_template, text, ...) ---@diagnostic disable-line: type-mismatch
+
             IsInternalCall = nil
         end)
 
@@ -804,12 +912,14 @@ local TOAST_URGENCIES = {
     emergency = true,
 }
 
+---@param urgencyLevel LibToast-1.0.UrgencyLevel
 function ToastProxy:SetUrgencyLevel(urgencyLevel)
     urgencyLevel = urgencyLevel:gsub(" ", "_"):lower()
 
     if not TOAST_URGENCIES[urgencyLevel] then
         error(('"%s" is not a valid toast urgency level'):format(urgencyLevel), 2)
     end
+
     CurrentToast.urgency_level = urgencyLevel
 end
 
@@ -817,18 +927,22 @@ function ToastProxy:UrgencyLevel()
     return CurrentToast.urgency_level
 end
 
+---@param title string
 function ToastProxy:SetTitle(title)
     CurrentToast.title:SetText(title)
 end
 
+---@param title string
 function ToastProxy:SetFormattedTitle(title, ...)
     CurrentToast.title:SetFormattedText(title, ...)
 end
 
+---@param text string
 function ToastProxy:SetText(text)
     CurrentToast.text:SetText(text)
 end
 
+---@param text string
 function ToastProxy:SetFormattedText(text, ...)
     CurrentToast.text:SetFormattedText(text, ...)
 end
@@ -837,8 +951,9 @@ function ToastProxy:SetIconAtlas(...)
     CurrentToast.icon:SetAtlas(...)
 end
 
-function ToastProxy:SetIconTexture(texture)
-    CurrentToast.icon:SetTexture(texture)
+---@param textureAsset number | string
+function ToastProxy:SetIconTexture(textureAsset)
+    CurrentToast.icon:SetTexture(textureAsset)
 end
 
 function ToastProxy:SetIconTexCoord(...)
@@ -850,11 +965,16 @@ do
     local BUTTON_NAME_FORMAT = "LibToast_Button%d"
     local button_count = 0
 
+    ---@param button LibToast-1.0.ToastButton
+    ---@param mouseButtonName MouseButton
+    ---@param isPress boolean
     local function _buttonCallbackHandler(button, mouseButtonName, isPress)
         button.handler(button.id, mouseButtonName, isPress, button.toast.payload)
         _reclaimToast(button.toast)
     end
 
+    ---@param toast LibToast-1.0.Toast
+    ---@return LibToast-1.0.ToastButton
     local function _acquireToastButton(toast)
         local button = table.remove(ButtonHeap)
 
@@ -862,7 +982,7 @@ do
             button_count = button_count + 1
 
             button =
-                CreateFrame("Button", BUTTON_NAME_FORMAT:format(button_count), toast, "UIMenuButtonStretchTemplate")
+                CreateFrame("Button", BUTTON_NAME_FORMAT:format(button_count), toast, "UIMenuButtonStretchTemplate") --[[@as LibToast-1.0.ToastButton]]
             button:SetHeight(TOAST_BUTTON_HEIGHT)
             button:SetFrameStrata("DIALOG")
             button:SetScript("OnClick", _buttonCallbackHandler)
@@ -877,13 +997,17 @@ do
         return button
     end
 
+    ---@param buttonID string
+    ---@param label string
+    ---@param handler function
+    ---@return LibToast-1.0.ToastButton
     function _initializedToastButton(buttonID, label, handler)
         if not label or not handler then
             error("label and handler are required", 3)
-            return
         end
 
         local button = CurrentToast[buttonID]
+
         if not button then
             button = _acquireToastButton(CurrentToast)
             CurrentToast[buttonID] = button
@@ -960,8 +1084,9 @@ function ToastProxy:MakePersistent()
     CurrentToast.is_persistent = true
 end
 
-function ToastProxy:SetSoundFile(filePath)
-    CurrentToast.sound_file = filePath
+---@param soundAsset number | string
+function ToastProxy:SetSoundFile(soundAsset)
+    CurrentToast.sound_file = soundAsset
 end
 
 --------------------------------------------------------------------------------
@@ -976,6 +1101,8 @@ local mixins = {
     "Spawn",
 }
 
+---@param target table
+---@return table
 function LibToast:Embed(target)
     LibToast.embeds[target] = true
 
@@ -983,6 +1110,7 @@ function LibToast:Embed(target)
         local method = mixins[index]
         target[method .. "Toast"] = LibToast[method]
     end
+
     return target
 end
 
