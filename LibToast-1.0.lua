@@ -9,6 +9,17 @@ assert(LibStub, MAJOR .. " requires LibStub")
 local MINOR = 16 -- Should be manually increased
 
 ---@class LibToast-1.0
+---@field active_toasts LibToast-1.0.Toast[]
+---@field addon_names table<table, string>
+---@field button_heap LibToast-1.0.ToastButton[]
+---@field queued_toasts LibToast-1.0.ToastData[]
+---@field registered_sink boolean?
+---@field sink_icons table<table, function | string>
+---@field sink_template table
+---@field sink_titles table<table, string>
+---@field templates table<string, fun(toast: LibToast-1.0.ToastProxy, ...: any)>
+---@field toast_heap LibToast-1.0.Toast[]
+---@field unique_templates table<string, boolean>
 local LibToast, previousMinorVersion = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not LibToast then
@@ -53,28 +64,17 @@ end
 ---- Migrations
 --------------------------------------------------------------------------------
 
----@type LibToast-1.0.Toast[]
 LibToast.active_toasts = LibToast.active_toasts or {}
-
----@type LibToast-1.0.ToastData[]
-LibToast.queued_toasts = LibToast.queued_toasts or {}
-
-LibToast.templates = LibToast.templates or {}
-
----@type table<string, boolean>
-LibToast.unique_templates = LibToast.unique_templates or {}
-
----@type LibToast-1.0.ToastButton[]
-LibToast.button_heap = LibToast.button_heap or {}
-
----@type LibToast-1.0.Toast[]
-LibToast.toast_heap = LibToast.toast_heap or {}
-
 LibToast.addon_names = LibToast.addon_names or {}
+LibToast.button_heap = LibToast.button_heap or {}
+LibToast.queued_toasts = LibToast.queued_toasts or {}
 LibToast.registered_sink = LibToast.registered_sink
 LibToast.sink_icons = LibToast.sink_icons or {}
 LibToast.sink_template = LibToast.sink_template or {} -- Cheating here, since users can only use strings.
 LibToast.sink_titles = LibToast.sink_titles or {}
+LibToast.templates = LibToast.templates or {}
+LibToast.toast_heap = LibToast.toast_heap or {}
+LibToast.unique_templates = LibToast.unique_templates or {}
 
 --------------------------------------------------------------------------------
 ---- Variables
