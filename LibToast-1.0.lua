@@ -645,9 +645,10 @@ end
 ---- Library Methods
 --------------------------------------------------------------------------------
 
----@param templateName string
----@param constructor fun(toast: LibToast-1.0.ToastProxy, ...: any)
----@param isUnique? boolean
+--- Registers a template for the given toast. Templates are stored by the library for the duration of the session to be spawned at any time.
+---@param templateName string Unique name for the toast template.
+---@param constructor fun(toast: LibToast-1.0.ToastProxy, ...) All toast API is invoked here. Occurs whenever the template is spawned.
+---@param isUnique? boolean if true, no other instances of this toast template may be spawned while one is in existence.
 function LibToast:Register(templateName, constructor, isUnique)
     local isLib = (self == LibToast)
 
@@ -669,7 +670,9 @@ function LibToast:Register(templateName, constructor, isUnique)
     LibToast.unique_templates[templateName] = isUnique or nil
 end
 
----@param templateName string
+--- Instantiates a toast from a named template and optional extra data.
+---@param templateName string Predefined unique name for the toast template to be spawned.
+---@param ... unknown Extra data to be passed to the template's toast constructor function.
 function LibToast:Spawn(templateName, ...)
     local isLib = (self == LibToast)
 
@@ -835,8 +838,10 @@ function LibToast:Spawn(templateName, ...)
     end
 end
 
----@param displayName string
----@param texturePath function | string
+--- Defines the title and icon for toasts produced by your AddOn when embedding LibSink-2.0 and has "Toast" set as its :Pour() target.
+--- This also prompts LibToast to create a Sink using LibSink-2.0 if it has not already done so.
+---@param displayName string The title of the toast.
+---@param texturePath function | string The path where the desired icon texture file resides.
 function LibToast:DefineSink(displayName, texturePath)
     local isLib = (self == LibToast)
     local texturePathType = type(texturePath)
