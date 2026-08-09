@@ -929,6 +929,7 @@ function ToastProxy:SetUrgencyLevel(urgencyLevel)
     CurrentToast.urgency_level = urgencyLevel
 end
 
+---@return LibToast-1.0.UrgencyLevel
 function ToastProxy:UrgencyLevel()
     return CurrentToast.urgency_level
 end
@@ -939,6 +940,7 @@ function ToastProxy:SetTitle(title)
 end
 
 ---@param title string
+---@param ... unknown
 function ToastProxy:SetFormattedTitle(title, ...)
     CurrentToast.title:SetFormattedText(title, ...)
 end
@@ -949,12 +951,19 @@ function ToastProxy:SetText(text)
 end
 
 ---@param text string
+---@param ... number | string
 function ToastProxy:SetFormattedText(text, ...)
     CurrentToast.text:SetFormattedText(text, ...)
 end
 
-function ToastProxy:SetIconAtlas(...)
-    CurrentToast.icon:SetAtlas(...)
+---@param atlas textureAtlas
+---@param useAtlasSize? boolean
+---@param filterMode? FilterMode
+---@param resetTexCoords? boolean
+---@param wrapModeHorizontal? string
+---@param wrapModeVertical? string
+function ToastProxy:SetIconAtlas(atlas, useAtlasSize, filterMode, resetTexCoords, wrapModeHorizontal, wrapModeVertical)
+    CurrentToast.icon:SetAtlas(atlas, useAtlasSize, filterMode, resetTexCoords, wrapModeHorizontal, wrapModeVertical)
 end
 
 ---@param textureAsset number | string
@@ -962,6 +971,9 @@ function ToastProxy:SetIconTexture(textureAsset)
     CurrentToast.icon:SetTexture(textureAsset)
 end
 
+---@param ... number Arguments to pass to texture:SetTexCoord()
+---@overload fun(ULx: number, ULy: number, LLx: number, LLy: number, URx: number, URy: number, LRx: number, LRy: number)
+---@overload fun(minX: number, maxX: number, minY: number, maxY: number)
 function ToastProxy:SetIconTexCoord(...)
     CurrentToast.icon:SetTexCoord(...)
 end
@@ -1031,6 +1043,8 @@ do
     end
 end -- do-block
 
+---@param label string
+---@param handler function
 function ToastProxy:SetPrimaryCallback(label, handler)
     local button = _initializedToastButton("primary_button", label, handler)
     button:SetPoint("BOTTOMLEFT", CurrentToast, "BOTTOMLEFT", 3, 4)
@@ -1043,6 +1057,8 @@ function ToastProxy:SetPrimaryCallback(label, handler)
     end
 end
 
+---@param label string
+---@param handler function
 function ToastProxy:SetSecondaryCallback(label, handler)
     if not CurrentToast.primary_button then
         error("primary button must be defined first", 2)
@@ -1058,6 +1074,8 @@ function ToastProxy:SetSecondaryCallback(label, handler)
     end
 end
 
+---@param label string
+---@param handler function
 function ToastProxy:SetTertiaryCallback(label, handler)
     if not CurrentToast.primary_button or not CurrentToast.secondary_button then
         error("primary and secondary buttons must be defined first", 2)
@@ -1078,10 +1096,12 @@ function ToastProxy:SetTertiaryCallback(label, handler)
     end
 end
 
+---@param ... any
 function ToastProxy:SetPayload(...)
     CurrentToast.payload = { ... }
 end
 
+---@return ...
 function ToastProxy:Payload()
     return unpack(CurrentToast.payload)
 end
