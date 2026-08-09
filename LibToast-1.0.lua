@@ -45,6 +45,7 @@ end
 ---@field secondary_button LibToast-1.0.ToastButton
 ---@field sound_file (number | string)!
 ---@field templateName string!
+---@field tertiary_button LibToast-1.0.ToastButton
 ---@field text FontString
 ---@field title FontString
 ---@field urgency_level LibToast-1.0.UrgencyLevel
