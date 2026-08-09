@@ -179,6 +179,11 @@ end
 ---- Toaster/Default Value Functions
 --------------------------------------------------------------------------------
 
+---@return Toaster
+local function GetToaster()
+    return _G.Toaster
+end
+
 local function ToastSpawnPoint()
     local Toaster = _G.Toaster
 
@@ -198,7 +203,7 @@ local function ToastOffsetY()
 end
 
 local function ToastTitleColors(urgencyLevel)
-    local Toaster = _G.Toaster
+    local Toaster = GetToaster()
 
     if Toaster then
         return Toaster:TitleColors(urgencyLevel)
@@ -208,7 +213,7 @@ local function ToastTitleColors(urgencyLevel)
 end
 
 local function ToastTextColors(urgencyLevel)
-    local Toaster = _G.Toaster
+    local Toaster = GetToaster()
 
     if Toaster then
         return Toaster:TextColors(urgencyLevel)
@@ -218,7 +223,7 @@ local function ToastTextColors(urgencyLevel)
 end
 
 local function ToastBackgroundColors(urgencyLevel)
-    local Toaster = _G.Toaster
+    local Toaster = GetToaster()
 
     if Toaster then
         return Toaster:BackgroundColors(urgencyLevel)
@@ -228,31 +233,31 @@ local function ToastBackgroundColors(urgencyLevel)
 end
 
 local function ToastDuration(addonName)
-    local Toaster = _G.Toaster
+    local Toaster = GetToaster()
 
     return Toaster and Toaster:Duration(addonName) or DEFAULT_FADE_HOLD_TIME
 end
 
 local function ToastOpacity(addonName)
-    local Toaster = _G.Toaster
+    local Toaster = GetToaster()
 
     return Toaster and Toaster:Opacity(addonName) or 0.75
 end
 
 local function ToastHasFloatingIcon(addonName)
-    local Toaster = _G.Toaster
+    local Toaster = GetToaster()
 
     return Toaster and Toaster:FloatingIcon(addonName)
 end
 
 local function ToastsAreSuppressed(addonName)
-    local Toaster = _G.Toaster
+    local Toaster = GetToaster()
 
     return Toaster and (Toaster:HideToasts() or Toaster:HideToastsFromSource(addonName))
 end
 
 local function ToastsAreMuted(addonName)
-    local Toaster = _G.Toaster
+    local Toaster = GetToaster()
 
     return Toaster and (Toaster:MuteToasts() or Toaster:MuteToastsFromSource(addonName))
 end
