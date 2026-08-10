@@ -918,6 +918,7 @@ local TOAST_URGENCIES = {
     emergency = true,
 }
 
+--- Sets the toast's urgency level.
 ---@param urgencyLevel LibToast-1.0.UrgencyLevel
 function ToastProxy:SetUrgencyLevel(urgencyLevel)
     urgencyLevel = urgencyLevel:gsub(" ", "_"):lower()
@@ -929,36 +930,42 @@ function ToastProxy:SetUrgencyLevel(urgencyLevel)
     CurrentToast.urgency_level = urgencyLevel
 end
 
+--- Returns the toast's current urgency level.
 ---@return LibToast-1.0.UrgencyLevel
 function ToastProxy:UrgencyLevel()
     return CurrentToast.urgency_level
 end
 
----@param title string
+--- Sets the title of the toast.
+---@param title string The title of the toast.
 function ToastProxy:SetTitle(title)
     CurrentToast.title:SetText(title)
 end
 
----@param title string
----@param ... unknown
+--- Sets the toast's title using a format string and optional arguments.
+---@param title string The format string for the title.
+---@param ... number | string Optional arguments used in the format string.
 function ToastProxy:SetFormattedTitle(title, ...)
     CurrentToast.title:SetFormattedText(title, ...)
 end
 
+--- Sets the text of the toast.
 ---@param text string
 function ToastProxy:SetText(text)
     CurrentToast.text:SetText(text)
 end
 
----@param text string
----@param ... number | string
+--- Sets the toast's text using a format string and optional arguments.
+---@param text string The format string for the text.
+---@param ... number | string Optional arguments used in the format string.
 function ToastProxy:SetFormattedText(text, ...)
     CurrentToast.text:SetFormattedText(text, ...)
 end
 
+--- Sets the toast's icon atlas.
 ---@param atlas textureAtlas
----@param useAtlasSize? boolean
----@param filterMode? FilterMode
+---@param useAtlasSize? boolean  True if the size of the texture should be changed to match the dimensions of the atlas.
+---@param filterMode? FilterMode Texture filtering mode to use, one of: LINEAR (default; bilinear filtering), TRILINEAR (also sampling mipmaps), or NEAREST (nearest-neighbor filtering).
 ---@param resetTexCoords? boolean
 ---@param wrapModeHorizontal? string
 ---@param wrapModeVertical? string
@@ -966,6 +973,7 @@ function ToastProxy:SetIconAtlas(atlas, useAtlasSize, filterMode, resetTexCoords
     CurrentToast.icon:SetAtlas(atlas, useAtlasSize, filterMode, resetTexCoords, wrapModeHorizontal, wrapModeVertical)
 end
 
+--- Sets the toast's icon texture.
 ---@param textureAsset number | string
 function ToastProxy:SetIconTexture(textureAsset)
     CurrentToast.icon:SetTexture(textureAsset)
@@ -1043,8 +1051,9 @@ do
     end
 end -- do-block
 
----@param label string
----@param handler function
+--- Creates a button on the toast to handle a primary callback.
+---@param label string The button's label.
+---@param handler function The callback handler function which is triggered on button push.
 function ToastProxy:SetPrimaryCallback(label, handler)
     local button = _initializedToastButton("primary_button", label, handler)
     button:SetPoint("BOTTOMLEFT", CurrentToast, "BOTTOMLEFT", 3, 4)
@@ -1057,8 +1066,9 @@ function ToastProxy:SetPrimaryCallback(label, handler)
     end
 end
 
----@param label string
----@param handler function
+--- Creates a button on the toast to handle a secondary callback.
+---@param label string The button's label.
+---@param handler function The callback handler function which is triggered on button push.
 function ToastProxy:SetSecondaryCallback(label, handler)
     if not CurrentToast.primary_button then
         error("primary button must be defined first", 2)
@@ -1074,12 +1084,14 @@ function ToastProxy:SetSecondaryCallback(label, handler)
     end
 end
 
----@param label string
----@param handler function
+--- Creates a button on the toast to handle a tertiary callback.
+---@param label string The button's label.
+---@param handler function The callback handler function which is triggered on button push.
 function ToastProxy:SetTertiaryCallback(label, handler)
     if not CurrentToast.primary_button or not CurrentToast.secondary_button then
         error("primary and secondary buttons must be defined first", 2)
     end
+
     CurrentToast.secondary_button:ClearAllPoints()
     CurrentToast.secondary_button:SetPoint("LEFT", CurrentToast.primary_button, "RIGHT", 0, 0)
 
@@ -1106,6 +1118,7 @@ function ToastProxy:Payload()
     return unpack(CurrentToast.payload)
 end
 
+--- The toast will not automatically fade out after being displayed. The user must click the close button in the corner or invoke a handler button.
 function ToastProxy:MakePersistent()
     CurrentToast.is_persistent = true
 end
