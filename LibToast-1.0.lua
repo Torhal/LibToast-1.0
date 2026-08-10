@@ -1023,7 +1023,7 @@ do
         return button
     end
 
-    ---@param buttonID string
+    ---@param buttonID "primary_button" | "secondary_button" | "tertiary_button"
     ---@param label string
     ---@param handler function
     ---@return LibToast-1.0.ToastButton
