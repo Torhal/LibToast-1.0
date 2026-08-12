@@ -6,6 +6,7 @@
 ## LoadOnDemand: 1
 ## X-Date: @project-date-iso@
 ## X-Category: Libraries
+## X-Curse-Project-ID: 30503
 ## X-License: All Rights Reserved
 
 LibStub\LibStub.lua
