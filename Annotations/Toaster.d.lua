@@ -22,7 +22,7 @@ function Toaster:HideToasts() end
 ---@return boolean
 function Toaster:HideToastsFromSource(addonName) end
 
----@param addonName string
+---@param addonName string?
 ---@return number
 function Toaster:IconSize(addonName) end
 
@@ -33,6 +33,7 @@ function Toaster:MuteToasts() end
 ---@return boolean
 function Toaster:MuteToastsFromSource(addonName) end
 
+---@param addonName string?
 ---@return number
 function Toaster:Opacity(addonName) end
 
